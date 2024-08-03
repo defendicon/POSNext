@@ -4,4 +4,4 @@ POSNext
 
 #### License
 
-mit
+mit# POSNext
