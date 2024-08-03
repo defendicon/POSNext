@@ -1,4 +1,4 @@
-erpnext.PointOfSale.ItemCart = class {
+posnext.PointOfSale.ItemCart = class {
 	constructor({ wrapper, events, settings }) {
 		this.wrapper = wrapper;
 		this.events = events;
@@ -114,6 +114,8 @@ erpnext.PointOfSale.ItemCart = class {
 				<div>0.00</div>
 			</div>
 			<div class="checkout-btn">${__('Checkout')}</div>
+			<div class="checkout-btn-held checkout-btn">${__('Held')}</div>
+			<div class="checkout-btn-order checkout-btn">${__('Order List')}</div>
 			<div class="edit-cart-btn">${__('Edit Cart')}</div>`
 		)
 
@@ -123,7 +125,7 @@ erpnext.PointOfSale.ItemCart = class {
 	make_cart_numpad() {
 		this.$numpad_section = this.$component.find('.numpad-section');
 
-		this.number_pad = new erpnext.PointOfSale.NumberPad({
+		this.number_pad = new posnext.PointOfSale.NumberPad({
 			wrapper: this.$numpad_section,
 			events: {
 				numpad_event: this.on_numpad_event.bind(this)
@@ -193,15 +195,28 @@ erpnext.PointOfSale.ItemCart = class {
 
 		this.$component.on('click', '.checkout-btn', async function() {
 			if ($(this).attr('style').indexOf('--blue-500') == -1) return;
-
+			console.log("AKDLAKSJDLAKSJDLAKSJD")
+			console.log($(this).attr('class').indexOf('checkout-btn-held'))
+			console.log($(this).attr('class').indexOf('checkout-btn-order'))
+			if ($(this).attr('class').indexOf('checkout-btn-held') !== -1) return;
+			if ($(this).attr('class').indexOf('checkout-btn-order') !== -1) return;
 			await me.events.checkout();
 			me.toggle_checkout_btn(false);
 
 			me.allow_discount_change && me.$add_discount_elem.removeClass("d-none");
 		});
 
+		this.$component.on('click', '.checkout-btn-held', () => {
+			if ($(this).attr('style').indexOf('--blue-500') == -1) return;
+			this.events.save_draft_invoice();
+		});
+		this.$component.on('click', '.checkout-btn-order', () => {
+			this.events.toggle_recent_order();
+		});
+
 		this.$totals_section.on('click', '.edit-cart-btn', () => {
 			this.events.edit_cart();
+
 			this.toggle_checkout_btn(true);
 		});
 
@@ -669,9 +684,13 @@ erpnext.PointOfSale.ItemCart = class {
 	toggle_checkout_btn(show_checkout) {
 		if (show_checkout) {
 			this.$totals_section.find('.checkout-btn').css('display', 'flex');
+			this.$totals_section.find('.checkout-btn-held').css('display', 'flex');
+			this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
 			this.$totals_section.find('.edit-cart-btn').css('display', 'none');
 		} else {
 			this.$totals_section.find('.checkout-btn').css('display', 'none');
+			this.$totals_section.find('.checkout-btn-held').css('display', 'none');
+			this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
 			this.$totals_section.find('.edit-cart-btn').css('display', 'flex');
 		}
 	}
@@ -682,10 +701,22 @@ erpnext.PointOfSale.ItemCart = class {
 			this.$cart_container.find('.checkout-btn').css({
 				'background-color': 'var(--blue-500)'
 			});
+			this.$cart_container.find('.checkout-btn-held').css({
+				'background-color': 'var(--blue-500)'
+			});
+			this.$cart_container.find('.checkout-btn-order').css({
+				'background-color': 'var(--blue---blue-500)'
+			});
 		} else {
 			this.$add_discount_elem.css('display', 'none');
 			this.$cart_container.find('.checkout-btn').css({
 				'background-color': 'var(--blue-200)'
+			});
+			this.$cart_container.find('.checkout-btn-held').css({
+				'background-color': 'var(--blue-200)'
+			});
+			this.$cart_container.find('.checkout-btn-order').css({
+				'background-color': 'var(--blue-500)'
 			});
 		}
 	}
@@ -1019,9 +1050,13 @@ erpnext.PointOfSale.ItemCart = class {
 
 		if(frm.doc.docstatus === 1) {
 			this.$totals_section.find('.checkout-btn').css('display', 'none');
+			this.$totals_section.find('.checkout-btn-held').css('display', 'none');
+			this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
 			this.$totals_section.find('.edit-cart-btn').css('display', 'none');
 		} else {
 			this.$totals_section.find('.checkout-btn').css('display', 'flex');
+			this.$totals_section.find('.checkout-btn-held').css('display', 'flex');
+			this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
 			this.$totals_section.find('.edit-cart-btn').css('display', 'none');
 		}
 

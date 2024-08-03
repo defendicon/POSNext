@@ -1,4 +1,4 @@
-erpnext.PointOfSale.PastOrderList = class {
+posnext.PointOfSale.PastOrderList = class {
 	constructor({ wrapper, events }) {
 		this.wrapper = wrapper;
 		this.events = events;

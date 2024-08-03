@@ -7,7 +7,7 @@ posnext.PointOfSale.Controller = class {
 	}
 
 	fetch_opening_entry() {
-		return frappe.call("posnext.posnext.page.point_of_sale.point_of_sale.check_opening_entry", { "user": frappe.session.user });
+		return frappe.call("posnext.posnext.page.posnext.point_of_sale.check_opening_entry", { "user": frappe.session.user });
 	}
 
 	check_opening_entry() {
@@ -230,7 +230,7 @@ posnext.PointOfSale.Controller = class {
 	}
 
 	init_item_selector() {
-		this.item_selector = new erpnext.PointOfSale.ItemSelector({
+		this.item_selector = new posnext.PointOfSale.ItemSelector({
 			wrapper: this.$components_wrapper,
 			pos_profile: this.pos_profile,
 			settings: this.settings,
@@ -243,7 +243,7 @@ posnext.PointOfSale.Controller = class {
 	}
 
 	init_item_cart() {
-		this.cart = new erpnext.PointOfSale.ItemCart({
+		this.cart = new posnext.PointOfSale.ItemCart({
 			wrapper: this.$components_wrapper,
 			settings: this.settings,
 			events: {
@@ -259,7 +259,8 @@ posnext.PointOfSale.Controller = class {
 				checkout: () => this.save_and_checkout(),
 
 				edit_cart: () => this.payment.edit_cart(),
-
+				save_draft_invoice: () => this.save_draft_invoice(),
+				toggle_recent_order: () => this.toggle_recent_order(),
 				customer_details_updated: (details) => {
 					this.customer_details = details;
 					// will add/remove LP payment method
@@ -270,7 +271,7 @@ posnext.PointOfSale.Controller = class {
 	}
 
 	init_item_details() {
-		this.item_details = new erpnext.PointOfSale.ItemDetails({
+		this.item_details = new posnext.PointOfSale.ItemDetails({
 			wrapper: this.$components_wrapper,
 			settings: this.settings,
 			events: {
@@ -336,7 +337,7 @@ posnext.PointOfSale.Controller = class {
 	}
 
 	init_payments() {
-		this.payment = new erpnext.PointOfSale.Payment({
+		this.payment = new posnext.PointOfSale.Payment({
 			wrapper: this.$components_wrapper,
 			events: {
 				get_frm: () => this.frm || {},
@@ -369,7 +370,7 @@ posnext.PointOfSale.Controller = class {
 	}
 
 	init_recent_order_list() {
-		this.recent_order_list = new erpnext.PointOfSale.PastOrderList({
+		this.recent_order_list = new posnext.PointOfSale.PastOrderList({
 			wrapper: this.$components_wrapper,
 			events: {
 				open_invoice_data: (name) => {
@@ -383,7 +384,7 @@ posnext.PointOfSale.Controller = class {
 	}
 
 	init_order_summary() {
-		this.order_summary = new erpnext.PointOfSale.PastOrderSummary({
+		this.order_summary = new posnext.PointOfSale.PastOrderSummary({
 			wrapper: this.$components_wrapper,
 			events: {
 				get_frm: () => this.frm,
@@ -540,9 +541,9 @@ posnext.PointOfSale.Controller = class {
 				}
 
 			} else {
-				if (!this.frm.doc.customer)
-					return this.raise_customer_selection_alert();
-
+				// if (!this.frm.doc.customer)
+				// 	return this.raise_customer_selection_alert();
+				frappe.flags.ignore_company_party_validation = true
 				const { item_code, batch_no, serial_no, rate, uom } = item;
 
 				if (!item_code)

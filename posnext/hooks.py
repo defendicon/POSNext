@@ -11,7 +11,17 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/posnext/css/posnext.css"
-# app_include_js = "/assets/posnext/js/posnext.js"
+app_include_js = [
+    "/assets/posnext/js/posnext_namespace.js",
+    "/assets/posnext/js/pos_controller.js",
+    "/assets/posnext/js/pos_item_cart.js",
+    "/assets/posnext/js/pos_item_details.js",
+    "/assets/posnext/js/pos_item_selector.js",
+    "/assets/posnext/js/pos_number_pad.js",
+    "/assets/posnext/js/pos_past_order_list.js",
+    "/assets/posnext/js/pos_past_order_summary.js",
+    "/assets/posnext/js/pos_payment.js",
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/posnext/css/posnext.css"

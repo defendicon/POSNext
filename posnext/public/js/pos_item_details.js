@@ -1,4 +1,4 @@
-erpnext.PointOfSale.ItemDetails = class {
+posnext.PointOfSale.ItemDetails = class {
 	constructor({ wrapper, events, settings }) {
 		this.wrapper = wrapper;
 		this.events = events;
