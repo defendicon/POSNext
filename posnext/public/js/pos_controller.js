@@ -93,7 +93,7 @@ posnext.PointOfSale.Controller = class {
 				// filter balance details for empty rows
 				balance_details = balance_details.filter(d => d.mode_of_payment);
 
-				const method = "erpnext.selling.page.point_of_sale.point_of_sale.create_opening_voucher";
+				const method = "posnext.posnext.page.posnext.point_of_sale.create_opening_voucher";
 				const res = await frappe.call({ method, args: { pos_profile, company, balance_details }, freeze:true });
 				!res.exc && me.prepare_app_defaults(res.message);
 				dialog.hide();
@@ -122,7 +122,7 @@ posnext.PointOfSale.Controller = class {
 		});
 
 		frappe.call({
-			method: "erpnext.selling.page.point_of_sale.point_of_sale.get_pos_profile_data",
+			method: "posnext.posnext.page.posnext.point_of_sale.get_pos_profile_data",
 			args: { "pos_profile": this.pos_profile },
 			callback: (res) => {
 				const profile = res.message;

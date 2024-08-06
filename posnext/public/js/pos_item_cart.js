@@ -7,6 +7,8 @@ posnext.PointOfSale.ItemCart = class {
 		this.allowed_customer_groups = settings.customer_groups;
 		this.allow_rate_change = settings.allow_rate_change;
 		this.allow_discount_change = settings.allow_discount_change;
+		this.show_held_button = settings.custom_show_held_button;
+		this.show_order_list_button = settings.custom_show_order_list_button;
 		this.init_component();
 	}
 
@@ -113,13 +115,45 @@ posnext.PointOfSale.ItemCart = class {
 				<div>${__('Grand Total')}</div>
 				<div>0.00</div>
 			</div>
-			<div class="checkout-btn">${__('Checkout')}</div>
-			<div class="checkout-btn-held checkout-btn">${__('Held')}</div>
-			<div class="checkout-btn-order checkout-btn">${__('Order List')}</div>
+			<div style=" display: flex;justify-content: space-between;gap: 10px;">
+				<div class="checkout-btn" style="
+				padding: 10px;
+							align-items: center;
+							justify-content: center;
+							background-color: #4CAF50;
+							color: white;
+							border: none;
+							border-radius: 5px;
+							cursor: pointer;
+							flex: 1; ">${__('Checkout')}</div>
+				<div class="checkout-btn-held checkout-btn" style="
+				padding: 10px;
+							align-items: center;
+							justify-content: center;
+							background-color: #4CAF50;
+							color: white;
+							border: none;
+							border-radius: 5px;
+							cursor: pointer;
+							flex: 1;
+							 display: none">${__('Held')}</div>
+				<div class="checkout-btn-order checkout-btn" style="
+				padding: 10px;
+							align-items: center;
+							justify-content: center;
+							background-color: #4CAF50;
+							color: white;
+							border: none;
+							border-radius: 5px;
+							cursor: pointer;
+							flex: 1;
+							 display: none">${__('Order List')}</div>
+			</div>	
 			<div class="edit-cart-btn">${__('Edit Cart')}</div>`
 		)
 
 		this.$add_discount_elem = this.$component.find(".add-discount-wrapper");
+
 	}
 
 	make_cart_numpad() {
@@ -195,15 +229,62 @@ posnext.PointOfSale.ItemCart = class {
 
 		this.$component.on('click', '.checkout-btn', async function() {
 			if ($(this).attr('style').indexOf('--blue-500') == -1) return;
-			console.log("AKDLAKSJDLAKSJDLAKSJD")
-			console.log($(this).attr('class').indexOf('checkout-btn-held'))
-			console.log($(this).attr('class').indexOf('checkout-btn-order'))
 			if ($(this).attr('class').indexOf('checkout-btn-held') !== -1) return;
 			if ($(this).attr('class').indexOf('checkout-btn-order') !== -1) return;
-			await me.events.checkout();
-			me.toggle_checkout_btn(false);
+			if(!cur_frm.doc.customer){
+				let d = new frappe.ui.Dialog({
+					title: 'Enter Mobile Number',
+					fields: [
+						{
+							label: 'Mobile Number',
+							fieldname: 'mobile_number',
+							fieldtype: 'Data',
+							reqd: 1
+						}
+					],
+					size: 'small',
+					primary_action_label: 'Create Customer',
+					primary_action: function(values) {
+						frappe.call({
+							method: "posnext.posnext.page.posnext.point_of_sale.create_customer",
+							args: {
+								customer: values['mobile_number']
+							},
+							freeze: true,
+							freeze_message: "Creating Customer....",
+							callback: async function(){
+								const frm = me.events.get_frm();
+								frappe.dom.freeze();
+								frappe.model.set_value(frm.doc.doctype, frm.doc.name, 'customer', values['mobile_number']);
+								frm.script_manager.trigger('customer', frm.doc.doctype, frm.doc.name).then(() => {
+									frappe.run_serially([
+										() => me.fetch_customer_details(values['mobile_number']),
+										() => me.events.customer_details_updated(me.customer_info),
+										() => me.update_customer_section(),
+										() => frappe.dom.unfreeze()
+									]);
+								})
+								// me.fetch_customer_details(values['mobile_number'])
+								// me.events.customer_details_updated(me.customer_info)
+								// me.update_customer_section()
+								await me.events.checkout();
+								me.toggle_checkout_btn(false);
+								me.allow_discount_change && me.$add_discount_elem.removeClass("d-none");
+								d.hide();
+							}
+						})
+					}
+				});
 
-			me.allow_discount_change && me.$add_discount_elem.removeClass("d-none");
+				d.show();
+			} else {
+				await me.events.checkout();
+				me.toggle_checkout_btn(false);
+				me.allow_discount_change && me.$add_discount_elem.removeClass("d-none");
+			}
+
+
+
 		});
 
 		this.$component.on('click', '.checkout-btn-held', () => {
@@ -312,7 +393,7 @@ posnext.PointOfSale.ItemCart = class {
 			<div class="customer-field"></div>
 		`);
 		const me = this;
-		const query = { query: 'erpnext.controllers.queries.customer_query' };
+		const query = { query: 'posnext.controllers.queries.customer_query' };
 		const allowed_customer_group = this.allowed_customer_groups || [];
 		if (allowed_customer_group.length) {
 			query.filters = {
@@ -684,13 +765,25 @@ posnext.PointOfSale.ItemCart = class {
 	toggle_checkout_btn(show_checkout) {
 		if (show_checkout) {
 			this.$totals_section.find('.checkout-btn').css('display', 'flex');
-			this.$totals_section.find('.checkout-btn-held').css('display', 'flex');
-			this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
+			if(this.show_held_button){
+				this.$totals_section.find('.checkout-btn-held').css('display', 'flex');
+			} else {
+				this.$totals_section.find('.checkout-btn-held').css('display', 'none');
+			}
+			if(this.show_order_list_button){
+				this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
+			} else {
+				this.$totals_section.find('.checkout-btn-order').css('display', 'none');
+			}
 			this.$totals_section.find('.edit-cart-btn').css('display', 'none');
 		} else {
 			this.$totals_section.find('.checkout-btn').css('display', 'none');
 			this.$totals_section.find('.checkout-btn-held').css('display', 'none');
-			this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
+			if(this.show_order_list_button){
+				this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
+			} else {
+				this.$totals_section.find('.checkout-btn-order').css('display', 'none');
+			}
 			this.$totals_section.find('.edit-cart-btn').css('display', 'flex');
 		}
 	}
@@ -701,12 +794,25 @@ posnext.PointOfSale.ItemCart = class {
 			this.$cart_container.find('.checkout-btn').css({
 				'background-color': 'var(--blue-500)'
 			});
-			this.$cart_container.find('.checkout-btn-held').css({
-				'background-color': 'var(--blue-500)'
-			});
-			this.$cart_container.find('.checkout-btn-order').css({
-				'background-color': 'var(--blue---blue-500)'
-			});
+			if(this.show_held_button){
+				this.$cart_container.find('.checkout-btn-held').css({
+					'background-color': 'var(--blue-500)'
+				});
+			} else {
+				this.$cart_container.find('.checkout-btn-held').css({
+					'background-color': 'var(--blue-200)'
+				});
+			}
+			if(this.show_order_list_button){
+				this.$cart_container.find('.checkout-btn-order').css({
+					'background-color': 'var(--blue---blue-500)'
+				});
+			} else {
+				this.$cart_container.find('.checkout-btn-order').css({
+					'background-color': 'var(--blue-500)'
+				});
+			}
+
 		} else {
 			this.$add_discount_elem.css('display', 'none');
 			this.$cart_container.find('.checkout-btn').css({
@@ -715,6 +821,7 @@ posnext.PointOfSale.ItemCart = class {
 			this.$cart_container.find('.checkout-btn-held').css({
 				'background-color': 'var(--blue-200)'
 			});
+
 			this.$cart_container.find('.checkout-btn-order').css({
 				'background-color': 'var(--blue-500)'
 			});
@@ -1051,12 +1158,24 @@ posnext.PointOfSale.ItemCart = class {
 		if(frm.doc.docstatus === 1) {
 			this.$totals_section.find('.checkout-btn').css('display', 'none');
 			this.$totals_section.find('.checkout-btn-held').css('display', 'none');
-			this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
+			if(this.show_order_list_button){
+				this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
+			} else {
+				this.$totals_section.find('.checkout-btn-order').css('display', 'none');
+			}
 			this.$totals_section.find('.edit-cart-btn').css('display', 'none');
 		} else {
 			this.$totals_section.find('.checkout-btn').css('display', 'flex');
-			this.$totals_section.find('.checkout-btn-held').css('display', 'flex');
-			this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
+			if(this.show_held_button){
+				this.$totals_section.find('.checkout-btn-held').css('display', 'flex');
+			} else {
+			this.$totals_section.find('.checkout-btn-held').css('display', 'none');
+			}
+			if(this.show_order_list_button){
+				this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
+			} else {
+				this.$totals_section.find('.checkout-btn-order').css('display', 'none');
+			}
 			this.$totals_section.find('.edit-cart-btn').css('display', 'none');
 		}
 

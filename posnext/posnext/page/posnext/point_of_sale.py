@@ -369,3 +369,14 @@ def get_pos_profile_data(pos_profile):
 
 	pos_profile.customer_groups = _customer_groups_with_children
 	return pos_profile
+
+
+@frappe.whitelist()
+def create_customer(customer):
+	obj = {
+		"doctype": "Customer",
+		"customer_name": customer
+	}
+
+	frappe.get_doc(obj).insert()
+	frappe.db.commit()
