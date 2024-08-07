@@ -244,7 +244,7 @@ posnext.PointOfSale.ItemCart = class {
 						}
 					],
 					size: 'small',
-					primary_action_label: 'Create Customer',
+					primary_action_label: 'Continue',
 					primary_action: function(values) {
 						frappe.call({
 							method: "posnext.posnext.page.posnext.point_of_sale.create_customer",
@@ -541,6 +541,11 @@ posnext.PointOfSale.ItemCart = class {
 					</div>
 				</div>`
 			);
+			if(this.mobile_number_based_customer){
+				this.$customer_section.find('.reset-customer-btn').css('display', 'none');
+			} else {
+				this.$customer_section.find('.reset-customer-btn').css('display', 'flex');
+			}
 		} else {
 			// reset customer selector
 			this.reset_customer_selector();
@@ -991,7 +996,13 @@ posnext.PointOfSale.ItemCart = class {
 			);
 			// transactions need to be in diff div from sticky elem for scrolling
 			this.$customer_section.append(`<div class="customer-transactions"></div>`);
-
+			if(this.mobile_number_based_customer){
+				this.$customer_section.find('.mobile_no-field').css('display', 'none');
+				this.$customer_section.find('.close-details-btn').css('display', 'none');
+			} else {
+				this.$customer_section.find('.mobile_no-field').css('display', 'flex');
+				this.$customer_section.find('.close-details-btn').css('display', 'flex');
+			}
 			this.render_customer_fields();
 			this.fetch_customer_transactions();
 
