@@ -373,10 +373,12 @@ def get_pos_profile_data(pos_profile):
 
 @frappe.whitelist()
 def create_customer(customer):
-	obj = {
-		"doctype": "Customer",
-		"customer_name": customer
-	}
+	customer_check = frappe.db.sql(""" SELECT * FROM `tabCustomer` WHERE name=%s""",customer,as_dict=1)
+	if len(customer_check) == 0:
+		obj = {
+			"doctype": "Customer",
+			"customer_name": customer
+		}
 
-	frappe.get_doc(obj).insert()
-	frappe.db.commit()
+		frappe.get_doc(obj).insert()
+		frappe.db.commit()

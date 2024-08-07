@@ -9,6 +9,7 @@ posnext.PointOfSale.ItemCart = class {
 		this.allow_discount_change = settings.allow_discount_change;
 		this.show_held_button = settings.custom_show_held_button;
 		this.show_order_list_button = settings.custom_show_order_list_button;
+		this.mobile_number_based_customer = settings.custom_mobile_number_based_customer;
 		this.init_component();
 	}
 
@@ -406,6 +407,7 @@ posnext.PointOfSale.ItemCart = class {
 				fieldtype: 'Link',
 				options: 'Customer',
 				placeholder: __('Search by customer name, phone, email.'),
+				read_only: this.mobile_number_based_customer,
 				get_query: () => query,
 				onchange: function() {
 					if (this.value) {
