@@ -229,6 +229,7 @@ posnext.PointOfSale.ItemCart = class {
 		});
 
 		this.$component.on('click', '.checkout-btn', async function() {
+			console.log($(this))
 			if ($(this).attr('style').indexOf('--blue-500') == -1) return;
 			if ($(this).attr('class').indexOf('checkout-btn-held') !== -1) return;
 			if ($(this).attr('class').indexOf('checkout-btn-order') !== -1) return;
@@ -288,9 +289,10 @@ posnext.PointOfSale.ItemCart = class {
 
 		});
 
-		this.$component.on('click', '.checkout-btn-held', () => {
+		this.$component.on('click', '.checkout-btn-held', function() {
+			console.log($(this))
 			if ($(this).attr('style').indexOf('--blue-500') == -1) return;
-			this.events.save_draft_invoice();
+			me.events.save_draft_invoice();
 		});
 		this.$component.on('click', '.checkout-btn-order', () => {
 			this.events.toggle_recent_order();
@@ -812,7 +814,7 @@ posnext.PointOfSale.ItemCart = class {
 			}
 			if(this.show_order_list_button){
 				this.$cart_container.find('.checkout-btn-order').css({
-					'background-color': 'var(--blue---blue-500)'
+					'background-color': 'var(--blue-500)'
 				});
 			} else {
 				this.$cart_container.find('.checkout-btn-order').css({
