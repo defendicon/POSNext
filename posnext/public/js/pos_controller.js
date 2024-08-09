@@ -236,10 +236,29 @@ posnext.PointOfSale.Controller = class {
 			settings: this.settings,
 			events: {
 				item_selected: args => this.on_cart_update(args),
-
+				init_item_cart: () => this.init_item_cart(),
+				change_items: (args) => this.change_items(args),
 				get_frm: () => this.frm || {}
 			}
 		})
+	}
+	change_items(items){
+		console.log("ITEEEEMS IN CHANGE ITEMS")
+		console.log(items)
+		var me = this
+		for(var x=0;x<items.length;x+=1){
+			var item_code = items[x].item_code
+			var batch_no = items[x].batch_no
+			var serial_no = items[x].serial_no
+			var uom =items[x].uom
+			var rate = items[x].rate
+			me.on_cart_update({
+					field: 'qty',
+					value: items[x].qty.toString(),
+					item: { item_code, batch_no, serial_no, uom, rate}
+			})
+			// this.update_cart_html(this.frm.items[x])
+		}
 	}
 
 	init_item_cart() {
@@ -623,6 +642,7 @@ posnext.PointOfSale.Controller = class {
 	}
 
 	update_cart_html(item_row, remove_item) {
+
 		this.cart.update_item_html(item_row, remove_item);
 		this.cart.update_totals_section(this.frm);
 	}

@@ -1,7 +1,7 @@
-
+var view = "List"
 posnext.PointOfSale.ItemSelector = class {
 	// eslint-disable-next-line no-unused-vars
-	constructor({ frm, wrapper, events, pos_profile, settings }) {
+	constructor({ frm, wrapper, events, pos_profile, settings,init_item_cart }) {
 		this.wrapper = wrapper;
 		this.events = events;
 		this.pos_profile = pos_profile;
@@ -12,6 +12,7 @@ posnext.PointOfSale.ItemSelector = class {
 	}
 
 	inti_component() {
+
 		this.prepare_dom();
 		this.make_search_bar();
 		this.load_items_data();
@@ -20,21 +21,83 @@ posnext.PointOfSale.ItemSelector = class {
 	}
 
 	prepare_dom() {
-		this.wrapper.append(
-			`<section class="items-selector">
-				<div class="filter-section">
-					<div class="label">${__('All Items')}</div>
-					<div class="search-field"></div>
-					<div class="item-group-field"></div>
-				</div>
-				<div class="items-container"></div>
-			</section>`
-		);
+		if(view === "Card"){
 
-		this.$component = this.wrapper.find('.items-selector');
-		this.$items_container = this.$component.find('.items-container');
+			this.wrapper.append(
+				`<section class="items-selector" id="card-view-section">
+					<div class="filter-section">
+						<div class="label" style="grid-column: span 2 / span 2">${__('All Items')}</div>
+						<div class="list-view"><a class="list-span">List</a></div>
+						<div class="card-view"><a class="card-span">Card</a></div>
+						<div class="search-field"></div>
+						<div class="item-group-field"></div>
+					</div>
+					<div class="items-container"></div>
+				</section>`
+			);
+
+			this.$component = this.wrapper.find('.items-selector');
+			this.$items_container = this.$component.find('.items-container');
+		} else {
+
+			this.wrapper.append(
+				`<section class="customer-cart-container items-selector" id="list-view-section" style="grid-column: span 6 / span 6;overflow-y:hidden">
+					<div class="filter-section">
+						<div class="label" style="grid-column: span 2 / span 2">${__('All Items')}</div>
+						<div class="list-view"><a class="list-span">List</a></div>
+						<div class="card-view"><a class="card-span">Card</a></div>
+						<div class="search-field"></div>
+						<div class="item-group-field"></div>
+					</div>
+					<div class="cart-container"></div>
+				</section>`
+			);
+
+			this.$component = this.wrapper.find('.customer-cart-container');
+			this.$items_container = this.$component.find('.cart-container');
+		}
+
+		this.$list_view = this.$component.find('.list-view');
+		this.$card_view = this.$component.find('.card-view');
+		if(view === "List"){
+			this.$list_view.find('.list-span').css({"display": "inline-block","background-color": "#3498db","color": "white","padding": "5px 10px", "border-radius": "20px", "font-size": "14px","font-weight": "bold", "text-transform": "uppercase","letter-spacing": "1px","cursor": "pointer", "transition": "background-color 0.3s ease"});
+			this.$card_view.find('.card-span').css({"display": "","background-color": "","color": "","padding": "", "border-radius": "", "font-size": "","font-weight": "", "text-transform": "","letter-spacing": "","cursor": "", "transition": ""});
+		} else {
+			this.$card_view.find('.card-span').css({"display": "inline-block","background-color": "#3498db","color": "white","padding": "5px 10px", "border-radius": "20px", "font-size": "14px","font-weight": "bold", "text-transform": "uppercase","letter-spacing": "1px","cursor": "pointer", "transition": "background-color 0.3s ease"});
+			this.$list_view.find('.list-span').css({"display": "","background-color": "","color": "","padding": "", "border-radius": "", "font-size": "","font-weight": "", "text-transform": "","letter-spacing": "","cursor": "", "transition": ""});
+
+		}
+		this.click_functions()
 	}
+	click_functions(){
+		this.$list_view.on('click', 'a', () => {
 
+			this.$list_view.find('.list-span').css({"display": "inline-block","background-color": "#3498db","color": "white","padding": "5px 10px", "border-radius": "20px", "font-size": "14px","font-weight": "bold", "text-transform": "uppercase","letter-spacing": "1px","cursor": "pointer", "transition": "background-color 0.3s ease"});
+			this.$card_view.find('.card-span').css({"display": "","background-color": "","color": "","padding": "", "border-radius": "", "font-size": "","font-weight": "", "text-transform": "","letter-spacing": "","cursor": "", "transition": ""});
+			view = "List"
+			if(document.getElementById("card-view-section")) document.getElementById("card-view-section").remove()
+			if(document.getElementById("list-view-section")) document.getElementById("list-view-section").remove()
+			if(document.getElementById("customer-cart-container2")) document.getElementById("customer-cart-container2").remove()
+
+			this.inti_component()
+			this.events.change_items(this.events.get_frm()._items)
+			this.events.init_item_cart()
+
+		});
+		this.$card_view.on('click', 'a', () => {
+			this.$card_view.find('.card-span').css({"display": "inline-block","background-color": "#3498db","color": "white","padding": "5px 10px", "border-radius": "20px", "font-size": "14px","font-weight": "bold", "text-transform": "uppercase","letter-spacing": "1px","cursor": "pointer", "transition": "background-color 0.3s ease"});
+			this.$list_view.find('.list-span').css({"display": "","background-color": "","color": "","padding": "", "border-radius": "", "font-size": "","font-weight": "", "text-transform": "","letter-spacing": "","cursor": "", "transition": ""});
+			view = "Card"
+			if(document.getElementById("card-view-section")) document.getElementById("card-view-section").remove()
+			if(document.getElementById("list-view-section")) document.getElementById("list-view-section").remove()
+			if(document.getElementById("customer-cart-container2")) document.getElementById("customer-cart-container2").remove()
+
+			this.inti_component()
+			this.events.change_items(this.events.get_frm()._items)
+			this.events.init_item_cart()
+
+		});
+	}
 	async load_items_data() {
 		if (!this.item_group) {
 			const res = await frappe.db.get_value("Item Group", {lft: 1, is_group: 1}, "name");
@@ -67,13 +130,169 @@ posnext.PointOfSale.ItemSelector = class {
 
 	render_item_list(items) {
 		this.$items_container.html('');
+		console.log("VIEEEW")
+		console.log(view)
+		if(view === "List"){
+			this.$items_container.append(
+			`<div class="abs-cart-container" style="overflow-y:hidden">
+					<div class="cart-header">
+						<div style="flex: 3">${__('Item')}</div>
+						<div style="flex: 1">${__('Rate')}</div>
+						<div style="flex: 1">${__('Available Qty')}</div>
+						<div class="qty-header">${__('UOM')}</div>
+					</div>
+					<div class="cart-items-section" style="overflow-y:hidden"></div>
+				</div>`
+			);
+			this.make_cart_items_section();
+			items.forEach(item => {
+				var item_html = this.update_item_html(item, items)
 
-		items.forEach(item => {
-			const item_html = this.get_item_html(item);
-			this.$items_container.append(item_html);
-		});
+				this.$items_container.append(item_html);
+			});
+		} else {
+			items.forEach(item => {
+                var item_html = this.get_item_html(item);
+                this.$items_container.append(item_html);
+        	})
+		}
+
+		// this.$cart_container = this.$component.find('.cart-container');
+
+
 	}
+	make_cart_items_section() {
+		this.$cart_header = this.$component.find('.cart-header');
+		this.$cart_items_wrapper = this.$component.find('.cart-items-section');
 
+	}
+	get_item_from_frm(item,items) {
+
+		return items.find(i => i.name == item.name);
+	}
+	update_item_html(item, items) {
+		const $item = this.get_cart_item(item);
+        //
+		// if (remove_item) {
+		// 	$item && $item.next().remove() && $item.remove();
+		// } else {
+		const item_row = this.get_item_from_frm(item,items);
+		console.log(item_row)
+		this.render_cart_item(item_row, $item);
+		// }
+
+		// const no_of_cart_items = this.$cart_items_wrapper.find('.cart-item-wrapper').length;
+		// this.highlight_checkout_btn(no_of_cart_items > 0);
+        //
+        // this.update_empty_cart_section(no_of_cart_items);
+	}
+	get_cart_item({ name }) {
+		const item_selector = `.cart-item-wrapper[data-row-name="${escape(name)}"]`;
+		return this.$cart_items_wrapper.find(item_selector);
+	}
+	render_cart_item(item_data, $item_to_update) {
+		const currency = this.events.get_frm().currency;
+		const me = this;
+		if (!$item_to_update.length) {
+			console.log("ITEM TO UPDATE")
+			console.log(item_data)
+			this.$cart_items_wrapper.append(
+				`<div class="cart-item-wrapper item-wrapper" 
+				data-item-code="${escape(item_data.item_code)}" 
+				data-serial-no="${escape(item_data.serial_no)}"
+				data-batch-no="${escape(item_data.batch_no)}" 
+				data-uom="${escape(item_data.uom)}"
+				data-rate="${escape(item_data.price_list_rate || 0)}"
+				title="${item_data.item_name}"
+				data-row-name="${escape(item_data.name)}"></div>
+				<div class="seperator"></div>`
+			)
+			$item_to_update = this.get_cart_item(item_data);
+		}
+
+		$item_to_update.html(
+			`${get_item_image_html()}
+			<div class="item-name-desc" style="flex: 4">
+				<div class="item-name" >
+					${item_data.item_name}
+				</div>
+				${get_description_html()}
+			</div>
+			${get_rate_discount_html()}`
+		)
+
+		set_dynamic_rate_header_width();
+
+		function set_dynamic_rate_header_width() {
+			const rate_cols = Array.from(me.$cart_items_wrapper.find(".item-rate-amount"));
+			me.$cart_header.find(".rate-amount-header").css("width", "");
+			me.$cart_items_wrapper.find(".item-rate-amount").css("width", "");
+			var max_width = rate_cols.reduce((max_width, elm) => {
+				if ($(elm).width() > max_width)
+					max_width = $(elm).width();
+				return max_width;
+			}, 0);
+
+			max_width += 1;
+			if (max_width == 1) max_width = "";
+
+			me.$cart_header.find(".rate-amount-header").css("width", max_width);
+			me.$cart_items_wrapper.find(".item-rate-amount").css("width", max_width);
+		}
+
+		function get_rate_discount_html() {
+			if (item_data.rate && item_data.amount && item_data.rate !== item_data.amount) {
+				return `
+					<div class="item-qty-rate" style="flex: 5">
+						<div class="item-rate-amount" style="flex: 1">
+							<div class="item-rate" style="text-align: center">${format_currency(item_data.price_list_rate, currency)}</div>
+						</div>
+						<div class="item-qty" style="flex: 1;display:block;text-align: center"><span> ${item_data.actual_qty || 0}</span></div>
+						<div class="item-qty" style="margin: 0"><span> ${item_data.uom}</span></div>
+						
+					</div>`
+			} else {
+				return `
+					<div class="item-qty-rate" style="flex: 5">
+						<div class="item-rate-amount" style="flex: 1">
+							<div class="item-rate" style="text-align: center">${format_currency(item_data.price_list_rate, currency)}</div>
+						</div>
+						<div class="item-qty" style="flex: 1;display:block;text-align: center"><span> ${item_data.actual_qty || 0}</span></div>
+						<div class="item-qty" style="margin: 0"><span> ${item_data.uom}</span></div>
+						
+					</div>`
+			}
+		}
+
+		function get_description_html() {
+			if (item_data.description) {
+				if (item_data.description.indexOf('<div>') != -1) {
+					try {
+						item_data.description = $(item_data.description).text();
+					} catch (error) {
+						item_data.description = item_data.description.replace(/<div>/g, ' ').replace(/<\/div>/g, ' ').replace(/ +/g, ' ');
+					}
+				}
+				item_data.description = frappe.ellipsis(item_data.description, 45);
+				return `<div class="item-desc">${item_data.description}</div>`;
+			}
+			return ``;
+		}
+
+		function get_item_image_html() {
+			const { image, item_name } = item_data;
+			if (!me.hide_images && image) {
+				return `
+					<div class="item-image">
+						<img
+							onerror="cur_pos.cart.handle_broken_image(this)"
+							src="${image}" alt="${frappe.get_abbr(item_name)}"">
+					</div>`;
+			} else {
+				return `<div class="item-image item-abbr">${frappe.get_abbr(item_name)}</div>`;
+			}
+		}
+	}
 	get_item_html(item) {
 		const me = this;
 		// eslint-disable-next-line no-unused-vars
@@ -205,7 +424,8 @@ posnext.PointOfSale.ItemSelector = class {
 
 	bind_events() {
 		const me = this;
-		frappe.require("https://cdn.jsdelivr.net/npm/onscan.js/onscan.min.js", function() {
+		if(!window.onScan){
+			frappe.require("https://cdn.jsdelivr.net/npm/onscan.js/onscan.min.js", function() {
 			window.onScan = onScan;
 
 			onScan.decodeKeyEvent = function (oEvent) {
@@ -243,6 +463,8 @@ posnext.PointOfSale.ItemSelector = class {
 				}
 			});
 		})
+		}
+
 
 
 		this.$component.on('click', '.item-wrapper', function() {
@@ -253,12 +475,11 @@ posnext.PointOfSale.ItemSelector = class {
 			let uom = unescape($item.attr('data-uom'));
 			let rate = unescape($item.attr('data-rate'));
 
-			// escape(undefined) returns "undefined" then unescape returns "undefined"
+			// escape(undefined) returns "un	defined" then unescape returns "undefined"
 			batch_no = batch_no === "undefined" ? undefined : batch_no;
 			serial_no = serial_no === "undefined" ? undefined : serial_no;
 			uom = uom === "undefined" ? undefined : uom;
 			rate = rate === "undefined" ? undefined : rate;
-
 			me.events.item_selected({
 				field: 'qty',
 				value: "+1",

@@ -22,10 +22,11 @@ posnext.PointOfSale.ItemCart = class {
 
 	prepare_dom() {
 		this.wrapper.append(
-			`<section class="customer-cart-container"></section>`
+			`<section class="customer-cart-container customer-cart-container1 " id="customer-cart-container2"></section>`
 		)
-
-		this.$component = this.wrapper.find('.customer-cart-container');
+		console.log("CONTAINERS")
+		console.log(this.wrapper.find('.customer-cart-container'))
+		this.$component = this.wrapper.find('.customer-cart-container1');
 	}
 
 	init_child_components() {
@@ -118,43 +119,38 @@ posnext.PointOfSale.ItemCart = class {
 			</div>
 			<div style=" display: flex;justify-content: space-between;gap: 10px;">
 				<div class="checkout-btn" style="
-				padding: 10px;
+							padding: 10px;
 							align-items: center;
 							justify-content: center;
-							background-color: #4CAF50;
 							color: white;
 							border: none;
 							border-radius: 5px;
 							cursor: pointer;
 							flex: 1; ">${__('Checkout')}</div>
 				<div class="checkout-btn-held checkout-btn" style="
-				padding: 10px;
+							padding: 10px;
 							align-items: center;
 							justify-content: center;
-							background-color: #4CAF50;
 							color: white;
 							border: none;
 							border-radius: 5px;
 							cursor: pointer;
-							flex: 1;
-							 display: none">${__('Held')}</div>
+							flex: 1;">${__('Held')}</div>
 				<div class="checkout-btn-order checkout-btn" style="
 				padding: 10px;
 							align-items: center;
 							justify-content: center;
-							background-color: #4CAF50;
 							color: white;
 							border: none;
 							border-radius: 5px;
 							cursor: pointer;
-							flex: 1;
-							 display: none">${__('Order List')}</div>
+							flex: 1;">${__('Order List')}</div>
 			</div>	
 			<div class="edit-cart-btn">${__('Edit Cart')}</div>`
 		)
 
 		this.$add_discount_elem = this.$component.find(".add-discount-wrapper");
-
+this.highlight_checkout_btn(true);
 	}
 
 	make_cart_numpad() {
@@ -663,7 +659,7 @@ posnext.PointOfSale.ItemCart = class {
 		}
 
 		const no_of_cart_items = this.$cart_items_wrapper.find('.cart-item-wrapper').length;
-		this.highlight_checkout_btn(no_of_cart_items > 0);
+		this.highlight_checkout_btn(true);
 
 		this.update_empty_cart_section(no_of_cart_items);
 	}
@@ -772,6 +768,8 @@ posnext.PointOfSale.ItemCart = class {
 	}
 
 	toggle_checkout_btn(show_checkout) {
+		console.log("TOGGLE CHECKOUT BTN")
+		console.log(show_checkout)
 		if (show_checkout) {
 			this.$totals_section.find('.checkout-btn').css('display', 'flex');
 			if(this.show_held_button){
@@ -787,6 +785,11 @@ posnext.PointOfSale.ItemCart = class {
 			this.$totals_section.find('.edit-cart-btn').css('display', 'none');
 		} else {
 			this.$totals_section.find('.checkout-btn').css('display', 'none');
+			if(this.show_held_button){
+				this.$totals_section.find('.checkout-btn-held').css('display', 'flex');
+			} else {
+				this.$totals_section.find('.checkout-btn-held').css('display', 'none');
+			}
 			this.$totals_section.find('.checkout-btn-held').css('display', 'none');
 			if(this.show_order_list_button){
 				this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
@@ -1165,7 +1168,7 @@ posnext.PointOfSale.ItemCart = class {
 			});
 		} else {
 			this.make_no_items_placeholder();
-			this.highlight_checkout_btn(false);
+			this.highlight_checkout_btn(true);
 		}
 
 		this.update_totals_section(frm);
