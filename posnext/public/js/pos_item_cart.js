@@ -10,6 +10,7 @@ posnext.PointOfSale.ItemCart = class {
 		this.show_held_button = settings.custom_show_held_button;
 		this.show_order_list_button = settings.custom_show_order_list_button;
 		this.mobile_number_based_customer = settings.custom_mobile_number_based_customer;
+		this.show_checkout_button = settings.custom_show_checkout_button;
 		this.init_component();
 	}
 
@@ -925,7 +926,12 @@ this.highlight_checkout_btn(true);
 
 	toggle_checkout_btn(show_checkout) {
 		if (show_checkout) {
-			this.$totals_section.find('.checkout-btn').css('display', 'flex');
+			if(this.show_checkout_button){
+				this.$totals_section.find('.checkout-btn').css('display', 'flex');
+			} else {
+				this.$totals_section.find('.checkout-btn').css('display', 'none');
+			}
+
 			if(this.show_held_button){
 				this.$totals_section.find('.checkout-btn-held').css('display', 'flex');
 			} else {
@@ -1330,7 +1336,12 @@ this.highlight_checkout_btn(true);
 			}
 			this.$totals_section.find('.edit-cart-btn').css('display', 'none');
 		} else {
-			this.$totals_section.find('.checkout-btn').css('display', 'flex');
+			if(this.show_checkout_button) {
+                this.$totals_section.find('.checkout-btn').css('display', 'flex');
+            } else {
+				                this.$totals_section.find('.checkout-btn').css('display', 'none');
+
+			}
 			if(this.show_held_button){
 				this.$totals_section.find('.checkout-btn-held').css('display', 'flex');
 			} else {
