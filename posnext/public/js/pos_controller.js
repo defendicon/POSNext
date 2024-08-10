@@ -243,22 +243,24 @@ posnext.PointOfSale.Controller = class {
 		})
 	}
 	change_items(items){
-		console.log("ITEEEEMS IN CHANGE ITEMS")
-		console.log(items)
 		var me = this
-		for(var x=0;x<items.length;x+=1){
-			var item_code = items[x].item_code
-			var batch_no = items[x].batch_no
-			var serial_no = items[x].serial_no
-			var uom =items[x].uom
-			var rate = items[x].rate
-			me.on_cart_update({
-					field: 'qty',
-					value: items[x].qty.toString(),
-					item: { item_code, batch_no, serial_no, uom, rate}
-			})
-			// this.update_cart_html(this.frm.items[x])
-		}
+		console.log("ITEEMS")
+		console.log(items)
+		this.frm = items;
+		this.cart.load_invoice()
+		// for(var x=0;x<items.length;x+=1){
+		// 	var item_code = items[x].item_code
+		// 	var batch_no = items[x].batch_no
+		// 	var serial_no = items[x].serial_no
+		// 	var uom =items[x].uom
+		// 	var rate = items[x].rate
+		// 	me.on_cart_update({
+		// 			field: 'qty',
+		// 			value: items[x].qty === 0 ? "+1" : items[x].qty,
+		// 			item: { item_code, batch_no, serial_no, uom, rate}
+		// 	})
+		// 	// this.update_cart_html(this.frm.items[x])
+		// }
 	}
 
 	init_item_cart() {
@@ -569,7 +571,9 @@ posnext.PointOfSale.Controller = class {
 					return;
 
 				const new_item = { item_code, batch_no, rate, uom, [field]: value };
-
+				if(value){
+					new_item['qty'] = value
+				}
 				if (serial_no) {
 					await this.check_serial_no_availablilty(item_code, this.frm.doc.set_warehouse, serial_no);
 					new_item['serial_no'] = serial_no;
@@ -615,6 +619,7 @@ posnext.PointOfSale.Controller = class {
 
 	get_item_from_frm({ name, item_code, batch_no, uom, rate }) {
 		let item_row = null;
+
 		if (name) {
 			item_row = this.frm.doc.items.find(i => i.name == name);
 		} else {
@@ -624,12 +629,11 @@ posnext.PointOfSale.Controller = class {
 			const has_batch_no = (batch_no !== 'null' && batch_no !== null);
 			item_row = this.frm.doc.items.find(
 				i => i.item_code === item_code
-					&& (!has_batch_no || (has_batch_no && i.batch_no === batch_no))
+					&& (has_batch_no && i.batch_no === batch_no)
 					&& (i.uom === uom)
 					&& (i.rate === flt(rate))
 			);
 		}
-
 		return item_row || {};
 	}
 
@@ -642,7 +646,8 @@ posnext.PointOfSale.Controller = class {
 	}
 
 	update_cart_html(item_row, remove_item) {
-
+		console.log("ITEEEEMS ROOOOW")
+		console.log(item_row)
 		this.cart.update_item_html(item_row, remove_item);
 		this.cart.update_totals_section(this.frm);
 	}

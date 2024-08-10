@@ -24,8 +24,6 @@ posnext.PointOfSale.ItemCart = class {
 		this.wrapper.append(
 			`<section class="customer-cart-container customer-cart-container1 " id="customer-cart-container2"></section>`
 		)
-		console.log("CONTAINERS")
-		console.log(this.wrapper.find('.customer-cart-container'))
 		this.$component = this.wrapper.find('.customer-cart-container1');
 	}
 
@@ -225,11 +223,10 @@ this.highlight_checkout_btn(true);
 		});
 
 		this.$component.on('click', '.checkout-btn', async function() {
-			console.log($(this))
 			if ($(this).attr('style').indexOf('--blue-500') == -1) return;
 			if ($(this).attr('class').indexOf('checkout-btn-held') !== -1) return;
 			if ($(this).attr('class').indexOf('checkout-btn-order') !== -1) return;
-			if(!cur_frm.doc.customer){
+			if(!cur_frm.doc.customer &&  me.mobile_number_based_customer){
 				let d = new frappe.ui.Dialog({
 					title: 'Enter Mobile Number',
 					fields: [
@@ -238,7 +235,13 @@ this.highlight_checkout_btn(true);
 							fieldname: 'mobile_number',
 							fieldtype: 'Data',
 							reqd: 1
-						}
+						},
+						{
+							label: '',
+							fieldname: 'mobile_number_numpad',
+							fieldtype: 'HTML',
+							options: '<div class="mobile_number_numpad"></div>'
+						},
 					],
 					size: 'small',
 					primary_action_label: 'Continue',
@@ -273,8 +276,60 @@ this.highlight_checkout_btn(true);
 						})
 					}
 				});
+				var mobile_number_numpad_div = d.wrapper.find(".mobile_number_numpad")
+				mobile_number_numpad_div.append(`
+					<div class="custom-numpad">
+						<style>
+						.custom-numpad {
+							display: grid;
+							grid-template-columns: repeat(3, 1fr);
+							gap: 10px;
+							max-width: 350px;
+							margin: 0 auto;
+						}
+						
+						.numpad-button {
+							padding: 15px;
+							font-size: 18px;
+							cursor: pointer;
+							background-color: #f1f1f1;
+							border: 1px solid #ccc;
+							border-radius: 5px;
+							text-align: center;
+						}
+						
+						.numpad-button:hover {
+							background-color: #ddd;
+						}
+						</style>
+						<button class="numpad-button one">1</button>
+						<button class="numpad-button two">2</button>
+						<button class="numpad-button three">3</button>
+						<button class="numpad-button four">4</button>
+						<button class="numpad-button five">5</button>
+						<button class="numpad-button six">6</button>
+						<button class="numpad-button seven">7</button>
+						<button class="numpad-button eight">8</button>
+						<button class="numpad-button nine">9</button>
+						<button class="numpad-button plus">+</button>
+						<button class="numpad-button zero">0</button>
+						<button class="numpad-button clear">C</button> <!-- Clear button -->
+					</div>`)
 
 				d.show();
+				var numpad_num = d.wrapper.find(".custom-numpad")
+				var numbers = ["one",'two','three','four','five','six','seven','eight','nine','zero',"plus"]
+				for(var xx=0;xx<numbers.length;xx+=1){
+					numpad_num.on('click', '.' + numbers[xx], function() {
+						var current_value = d.get_value("mobile_number")
+						d.set_value('mobile_number', current_value + $(this)[0].innerHTML.toString());
+					})
+				}
+				numpad_num.on('click', '.clear', function() {
+						d.set_value('mobile_number', "");
+					})
+
+
 			} else {
 				await me.events.checkout();
 				me.toggle_checkout_btn(false);
@@ -286,9 +341,108 @@ this.highlight_checkout_btn(true);
 		});
 
 		this.$component.on('click', '.checkout-btn-held', function() {
-			console.log($(this))
 			if ($(this).attr('style').indexOf('--blue-500') == -1) return;
-			me.events.save_draft_invoice();
+			if(!cur_frm.doc.customer && me.mobile_number_based_customer){
+				let d = new frappe.ui.Dialog({
+					title: 'Enter Mobile Number',
+					fields: [
+						{
+							label: 'Mobile Number',
+							fieldname: 'mobile_number',
+							fieldtype: 'Data',
+							reqd: 1
+						},
+						{
+							label: '',
+							fieldname: 'mobile_number_numpad',
+							fieldtype: 'HTML',
+							options: '<div class="mobile_number_numpad"></div>'
+						},
+					],
+					size: 'small',
+					primary_action_label: 'Continue',
+					primary_action: function(values) {
+						frappe.call({
+							method: "posnext.posnext.page.posnext.point_of_sale.create_customer",
+							args: {
+								customer: values['mobile_number']
+							},
+							freeze: true,
+							freeze_message: "Creating Customer....",
+							callback: async function(){
+								const frm = me.events.get_frm();
+								frappe.dom.freeze();
+								frappe.model.set_value(frm.doc.doctype, frm.doc.name, 'customer', values['mobile_number']);
+								frm.script_manager.trigger('customer', frm.doc.doctype, frm.doc.name).then(() => {
+									frappe.run_serially([
+										() => me.fetch_customer_details(values['mobile_number']),
+										() => me.events.customer_details_updated(me.customer_info),
+										() => me.update_customer_section(),
+										() => frappe.dom.unfreeze()
+									]);
+								})
+								me.events.save_draft_invoice();
+								d.hide();
+							}
+						})
+					}
+				});
+				var mobile_number_numpad_div = d.wrapper.find(".mobile_number_numpad")
+				mobile_number_numpad_div.append(`
+					<div class="custom-numpad">
+						<style>
+						.custom-numpad {
+							display: grid;
+							grid-template-columns: repeat(3, 1fr);
+							gap: 10px;
+							max-width: 350px;
+							margin: 0 auto;
+						}
+						
+						.numpad-button {
+							padding: 15px;
+							font-size: 18px;
+							cursor: pointer;
+							background-color: #f1f1f1;
+							border: 1px solid #ccc;
+							border-radius: 5px;
+							text-align: center;
+						}
+						
+						.numpad-button:hover {
+							background-color: #ddd;
+						}
+						</style>
+						<button class="numpad-button one">1</button>
+						<button class="numpad-button two">2</button>
+						<button class="numpad-button three">3</button>
+						<button class="numpad-button four">4</button>
+						<button class="numpad-button five">5</button>
+						<button class="numpad-button six">6</button>
+						<button class="numpad-button seven">7</button>
+						<button class="numpad-button eight">8</button>
+						<button class="numpad-button nine">9</button>
+						<button class="numpad-button plus">+</button>
+						<button class="numpad-button zero">0</button>
+						<button class="numpad-button clear">C</button> <!-- Clear button -->
+					</div>`)
+
+				d.show();
+				var numpad_num = d.wrapper.find(".custom-numpad")
+				var numbers = ["one",'two','three','four','five','six','seven','eight','nine','zero',"plus"]
+				for(var xx=0;xx<numbers.length;xx+=1){
+					numpad_num.on('click', '.' + numbers[xx], function() {
+						var current_value = d.get_value("mobile_number")
+						d.set_value('mobile_number', current_value + $(this)[0].innerHTML.toString());
+					})
+				}
+				numpad_num.on('click', '.clear', function() {
+						d.set_value('mobile_number', "");
+					})
+
+			} else {
+				me.events.save_draft_invoice();
+			}
 		});
 		this.$component.on('click', '.checkout-btn-order', () => {
 			this.events.toggle_recent_order();
@@ -655,6 +809,8 @@ this.highlight_checkout_btn(true);
 			$item && $item.next().remove() && $item.remove();
 		} else {
 			const item_row = this.get_item_from_frm(item);
+			console.log("ITEM ROW")
+			console.log(item_row)
 			this.render_cart_item(item_row, $item);
 		}
 
@@ -768,8 +924,6 @@ this.highlight_checkout_btn(true);
 	}
 
 	toggle_checkout_btn(show_checkout) {
-		console.log("TOGGLE CHECKOUT BTN")
-		console.log(show_checkout)
 		if (show_checkout) {
 			this.$totals_section.find('.checkout-btn').css('display', 'flex');
 			if(this.show_held_button){
@@ -785,17 +939,9 @@ this.highlight_checkout_btn(true);
 			this.$totals_section.find('.edit-cart-btn').css('display', 'none');
 		} else {
 			this.$totals_section.find('.checkout-btn').css('display', 'none');
-			if(this.show_held_button){
-				this.$totals_section.find('.checkout-btn-held').css('display', 'flex');
-			} else {
 				this.$totals_section.find('.checkout-btn-held').css('display', 'none');
-			}
 			this.$totals_section.find('.checkout-btn-held').css('display', 'none');
-			if(this.show_order_list_button){
-				this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
-			} else {
 				this.$totals_section.find('.checkout-btn-order').css('display', 'none');
-			}
 			this.$totals_section.find('.edit-cart-btn').css('display', 'flex');
 		}
 	}
@@ -1163,6 +1309,7 @@ this.highlight_checkout_btn(true);
 
 		this.$cart_items_wrapper.html('');
 		if (frm.doc.items.length) {
+			console.log("WITH LEEEEENGTH")
 			frm.doc.items.forEach(item => {
 				this.update_item_html(item);
 			});

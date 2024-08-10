@@ -313,7 +313,7 @@ posnext.PointOfSale.PastOrderSummary = class {
 			return [{ condition: true, visible_btns: ['Print Receipt', 'Email Receipt', 'New Order'] }];
 
 		return [
-			{ condition: this.doc.docstatus === 0, visible_btns: ['Edit Order', 'Delete Order'] },
+			{ condition: this.doc.docstatus === 0, visible_btns: ['Print Receipt','Edit Order', 'Delete Order'] },
 			{ condition: !this.doc.is_return && this.doc.docstatus === 1, visible_btns: ['Print Receipt', 'Email Receipt', 'Return']},
 			{ condition: this.doc.is_return && this.doc.docstatus === 1, visible_btns: ['Print Receipt', 'Email Receipt']}
 		];

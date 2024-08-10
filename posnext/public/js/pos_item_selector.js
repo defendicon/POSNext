@@ -80,8 +80,9 @@ posnext.PointOfSale.ItemSelector = class {
 			if(document.getElementById("customer-cart-container2")) document.getElementById("customer-cart-container2").remove()
 
 			this.inti_component()
-			this.events.change_items(this.events.get_frm()._items)
 			this.events.init_item_cart()
+			this.events.change_items(this.events.get_frm())
+
 
 		});
 		this.$card_view.on('click', 'a', () => {
@@ -93,8 +94,8 @@ posnext.PointOfSale.ItemSelector = class {
 			if(document.getElementById("customer-cart-container2")) document.getElementById("customer-cart-container2").remove()
 
 			this.inti_component()
-			this.events.change_items(this.events.get_frm()._items)
 			this.events.init_item_cart()
+			this.events.change_items(this.events.get_frm())
 
 		});
 	}
@@ -130,8 +131,6 @@ posnext.PointOfSale.ItemSelector = class {
 
 	render_item_list(items) {
 		this.$items_container.html('');
-		console.log("VIEEEW")
-		console.log(view)
 		if(view === "List"){
 			this.$items_container.append(
 			`<div class="abs-cart-container" style="overflow-y:hidden">
@@ -146,9 +145,10 @@ posnext.PointOfSale.ItemSelector = class {
 			);
 			this.make_cart_items_section();
 			items.forEach(item => {
-				var item_html = this.update_item_html(item, items)
 
-				this.$items_container.append(item_html);
+				this.render_cart_item(item);
+
+				// this.$items_container.append(item_html);
 			});
 		} else {
 			items.forEach(item => {
@@ -166,49 +166,31 @@ posnext.PointOfSale.ItemSelector = class {
 		this.$cart_items_wrapper = this.$component.find('.cart-items-section');
 
 	}
-	get_item_from_frm(item,items) {
-
-		return items.find(i => i.name == item.name);
-	}
-	update_item_html(item, items) {
-		const $item = this.get_cart_item(item);
-        //
-		// if (remove_item) {
-		// 	$item && $item.next().remove() && $item.remove();
-		// } else {
-		const item_row = this.get_item_from_frm(item,items);
-		console.log(item_row)
-		this.render_cart_item(item_row, $item);
-		// }
-
-		// const no_of_cart_items = this.$cart_items_wrapper.find('.cart-item-wrapper').length;
-		// this.highlight_checkout_btn(no_of_cart_items > 0);
-        //
-        // this.update_empty_cart_section(no_of_cart_items);
-	}
 	get_cart_item({ name }) {
 		const item_selector = `.cart-item-wrapper[data-row-name="${escape(name)}"]`;
 		return this.$cart_items_wrapper.find(item_selector);
 	}
-	render_cart_item(item_data, $item_to_update) {
+	get_cart_item1({ item_code }) {
+		const item_selector = `.cart-item-wrapper[data-row-name="${escape(item_code)}"]`;
+		return this.$cart_items_wrapper.find(item_selector);
+	}
+	render_cart_item(item_data) {
 		const currency = this.events.get_frm().currency;
 		const me = this;
-		if (!$item_to_update.length) {
-			console.log("ITEM TO UPDATE")
-			console.log(item_data)
-			this.$cart_items_wrapper.append(
-				`<div class="cart-item-wrapper item-wrapper" 
-				data-item-code="${escape(item_data.item_code)}" 
-				data-serial-no="${escape(item_data.serial_no)}"
-				data-batch-no="${escape(item_data.batch_no)}" 
-				data-uom="${escape(item_data.uom)}"
-				data-rate="${escape(item_data.price_list_rate || 0)}"
-				title="${item_data.item_name}"
-				data-row-name="${escape(item_data.name)}"></div>
-				<div class="seperator"></div>`
-			)
-			$item_to_update = this.get_cart_item(item_data);
-		}
+		console.log("ITEEEEEM RENDEEEER")
+				console.log(item_data)
+		this.$cart_items_wrapper.append(
+			`<div class="cart-item-wrapper item-wrapper" 
+			data-item-code="${escape(item_data.item_code)}" 
+			data-serial-no="${escape(item_data.serial_no)}"
+			data-batch-no="${escape(item_data.batch_no)}" 
+			data-uom="${escape(item_data.uom)}"
+			data-rate="${escape(item_data.price_list_rate || 0)}"
+			title="${item_data.item_name}"
+			data-row-name="${escape(item_data.item_code)}"></div>
+			<div class="seperator"></div>`
+		)
+		var $item_to_update = this.get_cart_item1(item_data);
 
 		$item_to_update.html(
 			`${get_item_image_html()}
