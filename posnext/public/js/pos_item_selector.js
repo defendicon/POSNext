@@ -7,7 +7,9 @@ posnext.PointOfSale.ItemSelector = class {
 		this.pos_profile = pos_profile;
 		this.hide_images = settings.hide_images;
 		this.auto_add_item = settings.auto_add_item_to_cart;
-
+		if(settings.custom_default_view){
+			view = settings.custom_default_view
+		}
 		this.inti_component();
 	}
 

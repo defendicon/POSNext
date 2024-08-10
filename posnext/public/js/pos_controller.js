@@ -444,6 +444,8 @@ posnext.PointOfSale.Controller = class {
 				}
 			}
 		})
+		console.log("ORDER SUMMARY")
+		console.log(this.order_summary)
 	}
 
 	toggle_recent_order_list(show) {
