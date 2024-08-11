@@ -19,7 +19,7 @@ posnext.PointOfSale.ItemDetails = class {
 
 	prepare_dom() {
 		this.wrapper.append(
-			`<section class="item-details-container"></section>`
+			`<section class="item-details-container" id="item-details-container"></section>`
 		)
 
 		this.$component = this.wrapper.find('.item-details-container');

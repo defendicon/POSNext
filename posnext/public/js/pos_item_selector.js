@@ -1,4 +1,5 @@
 var view = "List"
+
 posnext.PointOfSale.ItemSelector = class {
 	// eslint-disable-next-line no-unused-vars
 	constructor({ frm, wrapper, events, pos_profile, settings,init_item_cart }) {
@@ -10,6 +11,14 @@ posnext.PointOfSale.ItemSelector = class {
 		if(settings.custom_default_view){
 			view = settings.custom_default_view
 		}
+		if(settings.custom_show_only_list_view){
+			view = "List"
+		}
+		if(settings.custom_show_only_card_view){
+			view = "Card"
+		}
+		this.show_only_list_view = settings.custom_show_only_list_view
+		this.show_only_card_view = settings.custom_show_only_card_view
 		this.inti_component();
 	}
 
@@ -23,7 +32,7 @@ posnext.PointOfSale.ItemSelector = class {
 	}
 
 	prepare_dom() {
-		if(view === "Card"){
+		if(view === "Card" && !this.show_only_list_view){
 
 			this.wrapper.append(
 				`<section class="items-selector" id="card-view-section">
@@ -40,7 +49,7 @@ posnext.PointOfSale.ItemSelector = class {
 
 			this.$component = this.wrapper.find('.items-selector');
 			this.$items_container = this.$component.find('.items-container');
-		} else {
+		} else if(view === "List" && !this.show_only_card_view) {
 
 			this.wrapper.append(
 				`<section class="customer-cart-container items-selector" id="list-view-section" style="grid-column: span 6 / span 6;overflow-y:hidden">
@@ -61,15 +70,20 @@ posnext.PointOfSale.ItemSelector = class {
 
 		this.$list_view = this.$component.find('.list-view');
 		this.$card_view = this.$component.find('.card-view');
-		if(view === "List"){
+		if(view === "List" && !this.show_only_list_view){
 			this.$list_view.find('.list-span').css({"display": "inline-block","background-color": "#3498db","color": "white","padding": "5px 10px", "border-radius": "20px", "font-size": "14px","font-weight": "bold", "text-transform": "uppercase","letter-spacing": "1px","cursor": "pointer", "transition": "background-color 0.3s ease"});
-			this.$card_view.find('.card-span').css({"display": "","background-color": "","color": "","padding": "", "border-radius": "", "font-size": "","font-weight": "", "text-transform": "","letter-spacing": "","cursor": "", "transition": ""});
-		} else {
+			this.$card_view.find('.card-span').css({"display":  "","background-color": "","color": "","padding": "", "border-radius": "", "font-size": "","font-weight": "", "text-transform": "","letter-spacing": "","cursor": "", "transition": ""});
+		} else if(view === "Card" && !this.show_only_card_view){
 			this.$card_view.find('.card-span').css({"display": "inline-block","background-color": "#3498db","color": "white","padding": "5px 10px", "border-radius": "20px", "font-size": "14px","font-weight": "bold", "text-transform": "uppercase","letter-spacing": "1px","cursor": "pointer", "transition": "background-color 0.3s ease"});
-			this.$list_view.find('.list-span').css({"display": "","background-color": "","color": "","padding": "", "border-radius": "", "font-size": "","font-weight": "", "text-transform": "","letter-spacing": "","cursor": "", "transition": ""});
+			this.$list_view.find('.list-span').css({"display":  "","background-color": "","color": "","padding": "", "border-radius": "", "font-size": "","font-weight": "", "text-transform": "","letter-spacing": "","cursor": "", "transition": ""});
+		} else {
+			this.$list_view.find('.list-span').css({"display": "none"});
+			this.$card_view.find('.card-span').css({"display":  "none"});
 
 		}
-		this.click_functions()
+		if(!this.show_only_card_view && !this.show_only_list_view){
+			this.click_functions()
+		}
 	}
 	click_functions(){
 		this.$list_view.on('click', 'a', () => {
@@ -80,8 +94,10 @@ posnext.PointOfSale.ItemSelector = class {
 			if(document.getElementById("card-view-section")) document.getElementById("card-view-section").remove()
 			if(document.getElementById("list-view-section")) document.getElementById("list-view-section").remove()
 			if(document.getElementById("customer-cart-container2")) document.getElementById("customer-cart-container2").remove()
+			if(document.getElementById("item-details-container")) document.getElementById("item-details-container").remove()
 
 			this.inti_component()
+			this.events.init_item_details()
 			this.events.init_item_cart()
 			this.events.change_items(this.events.get_frm())
 
@@ -94,8 +110,10 @@ posnext.PointOfSale.ItemSelector = class {
 			if(document.getElementById("card-view-section")) document.getElementById("card-view-section").remove()
 			if(document.getElementById("list-view-section")) document.getElementById("list-view-section").remove()
 			if(document.getElementById("customer-cart-container2")) document.getElementById("customer-cart-container2").remove()
+			if(document.getElementById("item-details-container")) document.getElementById("item-details-container").remove()
 
 			this.inti_component()
+			this.events.init_item_details()
 			this.events.init_item_cart()
 			this.events.change_items(this.events.get_frm())
 
@@ -179,8 +197,6 @@ posnext.PointOfSale.ItemSelector = class {
 	render_cart_item(item_data) {
 		const currency = this.events.get_frm().currency;
 		const me = this;
-		console.log("ITEEEEEM RENDEEEER")
-				console.log(item_data)
 		this.$cart_items_wrapper.append(
 			`<div class="cart-item-wrapper item-wrapper" 
 			data-item-code="${escape(item_data.item_code)}" 

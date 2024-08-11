@@ -332,6 +332,9 @@ this.highlight_checkout_btn(true);
 
 
 			} else {
+				if(!cur_frm.doc.customer &&  !me.mobile_number_based_customer){
+					frappe.throw("Please Select a customer and add items first")
+				}
 				await me.events.checkout();
 				me.toggle_checkout_btn(false);
 				me.allow_discount_change && me.$add_discount_elem.removeClass("d-none");
@@ -810,8 +813,6 @@ this.highlight_checkout_btn(true);
 			$item && $item.next().remove() && $item.remove();
 		} else {
 			const item_row = this.get_item_from_frm(item);
-			console.log("ITEM ROW")
-			console.log(item_row)
 			this.render_cart_item(item_row, $item);
 		}
 
@@ -1315,7 +1316,6 @@ this.highlight_checkout_btn(true);
 
 		this.$cart_items_wrapper.html('');
 		if (frm.doc.items.length) {
-			console.log("WITH LEEEEENGTH")
 			frm.doc.items.forEach(item => {
 				this.update_item_html(item);
 			});

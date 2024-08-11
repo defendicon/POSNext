@@ -1,3 +1,4 @@
+var selected_item = {}
 posnext.PointOfSale.Controller = class {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper).find('.layout-main-section');
@@ -237,6 +238,7 @@ posnext.PointOfSale.Controller = class {
 			events: {
 				item_selected: args => this.on_cart_update(args),
 				init_item_cart: () => this.init_item_cart(),
+				init_item_details: () => this.init_item_details(),
 				change_items: (args) => this.change_items(args),
 				get_frm: () => this.frm || {}
 			}
@@ -244,8 +246,6 @@ posnext.PointOfSale.Controller = class {
 	}
 	change_items(items){
 		var me = this
-		console.log("ITEEMS")
-		console.log(items)
 		this.frm = items;
 		this.cart.load_invoice()
 		// for(var x=0;x<items.length;x+=1){
@@ -271,7 +271,16 @@ posnext.PointOfSale.Controller = class {
 				get_frm: () => this.frm,
 
 				cart_item_clicked: (item) => {
+					console.log("ITEEEEEEEM")
+					console.log(item)
+
 					const item_row = this.get_item_from_frm(item);
+
+					if(selected_item && selected_item['name'] == item['name']){
+						selected_item = {}
+					} else {
+						selected_item = item_row
+					}
 					this.item_details.toggle_item_details_section(item_row);
 				},
 
@@ -348,6 +357,7 @@ posnext.PointOfSale.Controller = class {
 				remove_item_from_cart: () => this.remove_item_from_cart(),
 				get_item_stock_map: () => this.item_stock_map,
 				close_item_details: () => {
+					selected_item = {}
 					this.item_details.toggle_item_details_section(null);
 					this.cart.prev_action = null;
 					this.cart.toggle_item_highlight();
@@ -355,6 +365,9 @@ posnext.PointOfSale.Controller = class {
 				get_available_stock: (item_code, warehouse) => this.get_available_stock(item_code, warehouse)
 			}
 		});
+		if(selected_item){
+			this.item_details.toggle_item_details_section(selected_item);
+		}
 	}
 
 	init_payments() {
@@ -444,8 +457,6 @@ posnext.PointOfSale.Controller = class {
 				}
 			}
 		})
-		console.log("ORDER SUMMARY")
-		console.log(this.order_summary)
 	}
 
 	toggle_recent_order_list(show) {
@@ -564,8 +575,8 @@ posnext.PointOfSale.Controller = class {
 				}
 
 			} else {
-				// if (!this.frm.doc.customer)
-				// 	return this.raise_customer_selection_alert();
+				if (!this.frm.doc.customer && !this.settings.custom_mobile_based_customer)
+					return this.raise_customer_selection_alert();
 				frappe.flags.ignore_company_party_validation = true
 				const { item_code, batch_no, serial_no, rate, uom } = item;
 
@@ -648,8 +659,6 @@ posnext.PointOfSale.Controller = class {
 	}
 
 	update_cart_html(item_row, remove_item) {
-		console.log("ITEEEEMS ROOOOW")
-		console.log(item_row)
 		this.cart.update_item_html(item_row, remove_item);
 		this.cart.update_totals_section(this.frm);
 	}
