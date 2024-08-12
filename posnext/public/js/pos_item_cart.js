@@ -11,6 +11,7 @@ posnext.PointOfSale.ItemCart = class {
 		this.show_order_list_button = settings.custom_show_order_list_button;
 		this.mobile_number_based_customer = settings.custom_mobile_number_based_customer;
 		this.show_checkout_button = settings.custom_show_checkout_button;
+		this.settings = settings;
 		this.init_component();
 	}
 
@@ -247,6 +248,9 @@ this.highlight_checkout_btn(true);
 					size: 'small',
 					primary_action_label: 'Continue',
 					primary_action: function(values) {
+						if(values['mobile_number'].length !== me.settings.custom_mobile_number_length){
+							frappe.throw("Mobile Number Length is " + me.settings.custom_mobile_number_length.toString())
+						}
 						frappe.call({
 							method: "posnext.posnext.page.posnext.point_of_sale.create_customer",
 							args: {
@@ -312,7 +316,7 @@ this.highlight_checkout_btn(true);
 						<button class="numpad-button seven">7</button>
 						<button class="numpad-button eight">8</button>
 						<button class="numpad-button nine">9</button>
-						<button class="numpad-button plus">+</button>
+						<button class="numpad-button delete" style="color: red">x</button>
 						<button class="numpad-button zero">0</button>
 						<button class="numpad-button clear">C</button> <!-- Clear button -->
 					</div>`)
@@ -328,6 +332,10 @@ this.highlight_checkout_btn(true);
 				}
 				numpad_num.on('click', '.clear', function() {
 						d.set_value('mobile_number', "");
+					})
+				numpad_num.on('click', '.delete', function() {
+					var current_value = d.get_value("mobile_number")
+						d.set_value('mobile_number', current_value.slice(0, -1));
 					})
 
 
@@ -366,6 +374,9 @@ this.highlight_checkout_btn(true);
 					size: 'small',
 					primary_action_label: 'Continue',
 					primary_action: function(values) {
+						if(values['mobile_number'].length !== me.settings.custom_mobile_number_length){
+							frappe.throw("Mobile Number Length is " + me.settings.custom_mobile_number_length.toString())
+						}
 						frappe.call({
 							method: "posnext.posnext.page.posnext.point_of_sale.create_customer",
 							args: {
@@ -385,7 +396,8 @@ this.highlight_checkout_btn(true);
 										() => frappe.dom.unfreeze()
 									]);
 								})
-								me.events.save_draft_invoice();
+								me.events.save_draft_invoice()
+
 								d.hide();
 							}
 						})
@@ -426,7 +438,7 @@ this.highlight_checkout_btn(true);
 						<button class="numpad-button seven">7</button>
 						<button class="numpad-button eight">8</button>
 						<button class="numpad-button nine">9</button>
-						<button class="numpad-button plus">+</button>
+						<button class="numpad-button delete" style="color: red">x</button>
 						<button class="numpad-button zero">0</button>
 						<button class="numpad-button clear">C</button> <!-- Clear button -->
 					</div>`)
@@ -443,7 +455,10 @@ this.highlight_checkout_btn(true);
 				numpad_num.on('click', '.clear', function() {
 						d.set_value('mobile_number', "");
 					})
-
+numpad_num.on('click', '.delete', function() {
+					var current_value = d.get_value("mobile_number")
+						d.set_value('mobile_number', current_value.slice(0, -1));
+					})
 			} else {
 				me.events.save_draft_invoice();
 			}

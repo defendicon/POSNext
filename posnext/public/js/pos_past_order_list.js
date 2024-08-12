@@ -1,3 +1,4 @@
+var invoicess = []
 posnext.PointOfSale.PastOrderList = class {
 	constructor({ wrapper, events }) {
 		this.wrapper = wrapper;
@@ -16,6 +17,13 @@ posnext.PointOfSale.PastOrderList = class {
 		this.wrapper.append(
 			`<section class="past-order-list">
 				<div class="filter-section">
+					<div class="label back" style="font-size: 13px ">
+						<a>
+							<svg class="es-line" style="width: 13px;height: 13px">
+								<use class="" href="#es-line-left-chevron"></use></svg> Back
+						</a>
+					</div>
+					<br>
 					<div class="label">${__('Recent Orders')}</div>
 					<div class="search-field"></div>
 					<div class="status-field"></div>
@@ -26,6 +34,7 @@ posnext.PointOfSale.PastOrderList = class {
 
 		this.$component = this.wrapper.find('.past-order-list');
 		this.$invoices_container = this.$component.find('.invoices-container');
+
 	}
 
 	bind_events() {
@@ -39,8 +48,10 @@ posnext.PointOfSale.PastOrderList = class {
 		const me = this;
 		this.$invoices_container.on('click', '.invoice-wrapper', function() {
 			const invoice_name = unescape($(this).attr('data-invoice-name'));
-
 			me.events.open_invoice_data(invoice_name);
+		});
+		this.$component.on('click', '.back', function() {
+			me.events.previous_screen()
 		});
 	}
 
@@ -87,12 +98,14 @@ posnext.PointOfSale.PastOrderList = class {
 			args: { search_term, status },
 			callback: (response) => {
 				frappe.dom.unfreeze();
+				invoicess = response.message
 				response.message.forEach(invoice => {
 					const invoice_html = this.get_invoice_html(invoice);
 					this.$invoices_container.append(invoice_html);
 				});
 			}
 		});
+
 	}
 
 	get_invoice_html(invoice) {
@@ -118,6 +131,12 @@ posnext.PointOfSale.PastOrderList = class {
 	}
 
 	toggle_component(show) {
-		show ? this.$component.css('display', 'flex') && this.refresh_list() : this.$component.css('display', 'none');
+		frappe.run_serially([
+			() => show ? this.$component.css('display', 'flex') && this.refresh_list() : this.$component.css('display', 'none'),
+			() => this.events.open_invoice_data(invoicess[0].name)
+		])
+
+
+
 	}
 };

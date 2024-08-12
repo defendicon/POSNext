@@ -169,14 +169,18 @@ posnext.PointOfSale.Controller = class {
 
 	prepare_menu() {
 		this.page.clear_menu();
-
-		this.page.add_menu_item(__("Open Form View"), this.open_form_view.bind(this), false, 'Ctrl+F');
-
-		this.page.add_menu_item(__("Toggle Recent Orders"), this.toggle_recent_order.bind(this), false, 'Ctrl+O');
-
-		this.page.add_menu_item(__("Save as Draft"), this.save_draft_invoice.bind(this), false, 'Ctrl+S');
-
-		this.page.add_menu_item(__('Close the POS'), this.close_pos.bind(this), false, 'Shift+Ctrl+C');
+		if(this.settings.custom_show_open_form_view){
+			this.page.add_menu_item(__("Open Form View"), this.open_form_view.bind(this), false, 'Ctrl+F');
+		}
+		if(this.settings.custom_show_toggle_recent_orders) {
+			this.page.add_menu_item(__("Toggle Recent Orders"), this.toggle_recent_order.bind(this), false, 'Ctrl+O');
+		}
+		if(this.settings.custom_show_save_as_draft) {
+			this.page.add_menu_item(__("Save as Draft"), this.save_draft_invoice.bind(this), false, 'Ctrl+S');
+		}
+		if(this.settings.custom_show_close_the_pos) {
+			this.page.add_menu_item(__('Close the POS'), this.close_pos.bind(this), false, 'Shift+Ctrl+C');
+		}
 	}
 
 	open_form_view() {
@@ -210,9 +214,14 @@ posnext.PointOfSale.Controller = class {
 		}).then(() => {
 			frappe.run_serially([
 				() => frappe.dom.freeze(),
-				() => this.make_new_invoice(),
-				() => frappe.dom.unfreeze(),
+				() => this.make_new_invoice(true),
+				() => frappe.dom.unfreeze()
+
+
 			]);
+
+
+
 		});
 	}
 
@@ -412,7 +421,13 @@ posnext.PointOfSale.Controller = class {
 						this.order_summary.load_summary_of(doc);
 					});
 				},
-				reset_summary: () => this.order_summary.toggle_summary_placeholder(true)
+				reset_summary: () => this.order_summary.toggle_summary_placeholder(true),
+				previous_screen: () => {
+					this.recent_order_list.toggle_component(false);
+					this.cart.load_invoice()
+					this.item_selector.toggle_component(true)
+				},
+
 			}
 		})
 	}
@@ -473,15 +488,28 @@ posnext.PointOfSale.Controller = class {
 		!show ? (this.item_details.toggle_component(false) || this.payment.toggle_component(false)) : '';
 	}
 
-	make_new_invoice() {
-		return frappe.run_serially([
-			() => frappe.dom.freeze(),
-			() => this.make_sales_invoice_frm(),
-			() => this.set_pos_profile_data(),
-			() => this.set_pos_profile_status(),
-			() => this.cart.load_invoice(),
-			() => frappe.dom.unfreeze()
-		]);
+	make_new_invoice(from_held=false) {
+		if(from_held){
+			return frappe.run_serially([
+				() => frappe.dom.freeze(),
+				() => this.make_sales_invoice_frm(),
+				() => this.set_pos_profile_data(),
+				() => this.set_pos_profile_status(),
+				() => this.cart.load_invoice(),
+				() => frappe.dom.unfreeze(),
+				() => this.toggle_recent_order(),
+			]);
+		} else {
+			return frappe.run_serially([
+				() => frappe.dom.freeze(),
+				() => this.make_sales_invoice_frm(),
+				() => this.set_pos_profile_data(),
+				() => this.set_pos_profile_status(),
+				() => this.cart.load_invoice(),
+				() => frappe.dom.unfreeze(),
+			]);
+		}
+
 	}
 
 	make_sales_invoice_frm() {
@@ -575,8 +603,9 @@ posnext.PointOfSale.Controller = class {
 				}
 
 			} else {
-				if (!this.frm.doc.customer && !this.settings.custom_mobile_based_customer)
+				if (!this.frm.doc.customer && !this.settings.custom_mobile_number_based_customer){
 					return this.raise_customer_selection_alert();
+				}
 				frappe.flags.ignore_company_party_validation = true
 				const { item_code, batch_no, serial_no, rate, uom } = item;
 

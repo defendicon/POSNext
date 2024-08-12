@@ -405,5 +405,6 @@ posnext.PointOfSale.PastOrderSummary = class {
 
 	toggle_component(show) {
 		show ? this.$component.css('display', 'flex') : this.$component.css('display', 'none');
+
 	}
 };
