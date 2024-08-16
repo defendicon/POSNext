@@ -5,7 +5,7 @@ posnext.PointOfSale.Controller = class {
 		this.page = wrapper.page;
 		frappe.run_serially([
 			() => this.reload_status = false,
-			() => this.check_opening_entry(),
+			() => this.check_opening_entry(""),
 			() => this.reload_status = true,
 		]);
 
