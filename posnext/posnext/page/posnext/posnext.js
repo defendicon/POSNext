@@ -11,7 +11,7 @@ frappe.pages['posnext'].on_page_load = function(wrapper) {
 }
 frappe.pages['posnext'].refresh = function(wrapper,onscan = "",value="") {
 	// if (document.scannerDetectionData) {
-		if(!onscan){
+		if(!onscan && window.onScan){
 			window.onScan.detachFrom(document)
 		}
 		wrapper.pos.wrapper.html("");
