@@ -258,10 +258,13 @@ def item_group_query(doctype, txt, searchfield, start, page_len, filters):
 
 
 @frappe.whitelist()
-def check_opening_entry(user):
+def check_opening_entry(user,value):
+	filters = {"user": user, "pos_closing_entry": ["in", ["", None]], "docstatus": 1}
+	if value:
+		filters['pos_profile'] = value
 	open_vouchers = frappe.db.get_all(
 		"POS Opening Entry",
-		filters={"user": user, "pos_closing_entry": ["in", ["", None]], "docstatus": 1},
+		filters=filters,
 		fields=["name", "company", "pos_profile", "period_start_date"],
 		order_by="period_start_date desc",
 	)
@@ -382,3 +385,27 @@ def create_customer(customer):
 
 		frappe.get_doc(obj).insert()
 		frappe.db.commit()
+
+
+import frappe
+from frappe.utils.pdf import get_pdf
+from frappe.utils.file_manager import save_file
+
+@frappe.whitelist()
+def generate_pdf_and_save(docname, doctype, print_format=None):
+	# Get the HTML content of the print format
+	print("HEEEEEEEEEEEEEEEEEEERE")
+	data = frappe.get_doc(doctype,docname)
+	html = frappe.get_print(doctype, docname, print_format)
+
+	# Generate PDF from HTML
+	pdf_data = get_pdf(html)
+
+	# Define file name
+	file_name = f"{data.customer_name + ' - ' + docname.split('-')[-1]}.pdf"
+
+	# Save the PDF as a file
+	file_doc = save_file(file_name, pdf_data, doctype, docname, is_private=0)
+	print("FILE DOOOOC")
+	print(file_doc)
+	return file_doc

@@ -1,6 +1,7 @@
 posnext.PointOfSale.PastOrderSummary = class {
-	constructor({ wrapper, events }) {
+	constructor({ wrapper, pos_profile,events }) {
 		this.wrapper = wrapper;
+		this.pos_profile = pos_profile;
 		this.events = events;
 
 		this.init_component();
@@ -19,8 +20,8 @@ posnext.PointOfSale.PastOrderSummary = class {
 				<div class="no-summary-placeholder">
 					${__('Select an invoice to load summary data')}
 				</div>
-				<div class="invoice-summary-wrapper">
-					<div class="abs-container">
+				<div class="invoice-summary-wrapper" style="width: 100%">
+					<div class="abs-container" style="width:">
 						<div class="upper-section"></div>
 						<div class="label">${__('Items')}</div>
 						<div class="items-container summary-container"></div>
@@ -177,13 +178,43 @@ posnext.PointOfSale.PastOrderSummary = class {
 			this.show_summary_placeholder();
 		});
 
-		this.$summary_container.on('click', '.delete-btn', () => {
-			this.events.delete_order(this.doc.name);
-			this.show_summary_placeholder();
+		this.$summary_container.on('click', '.send-btn', () => {
+			// this.events.delete_order(this.doc.name);
+			// this.show_summary_placeholder();
+			console.log("SEND BUTTON")
+		console.log(this.pos_profile)
+		var field_names = this.pos_profile.custom_whatsapp_field_names.map(x => this.doc[x.field_names.toString()]);
+			console.log(field_names)
+			console.log(field_names.join(","))
+			var message = "https://wa.me/+63977491965?text="
+			message += formatString(this.pos_profile.custom_whatsapp_message, field_names);
+			console.log(message)
+			// message += "Hello, here is the file you requested."
+			frappe.call({
+				method: "posnext.posnext.page.posnext.point_of_sale.generate_pdf_and_save",
+				args: {
+					docname: this.doc.name,
+					doctype: this.doc.doctype,
+					print_format: this.pos_profile.print_format
+				},
+				freeze: true,
+				freeze_message: "Creating file then send to whatsapp thru link....",
+				callback: function (r) {
+					message += "Please Find your invoice here \n "+window.origin+r.message.file_url
+					window.open(message)
+                }
+			})
 			// this.toggle_component(false);
 			// this.$component.find('.no-summary-placeholder').removeClass('d-none');
 			// this.$summary_wrapper.addClass('d-none');
 		});
+		function formatString(str, args) {
+			return str.replace(/{(\d+)}/g, function(match, number) {
+				return typeof args[number] !== 'undefined'
+					? args[number]
+					: match;
+			});
+		}
 
 		this.$summary_container.on('click', '.new-btn', () => {
 			this.events.new_order();
@@ -313,7 +344,7 @@ posnext.PointOfSale.PastOrderSummary = class {
 			return [{ condition: true, visible_btns: ['Print Receipt', 'Email Receipt', 'New Order'] }];
 
 		return [
-			{ condition: this.doc.docstatus === 0, visible_btns: ['Print Receipt','Edit Order', 'Delete Order'] },
+			{ condition: this.doc.docstatus === 0, visible_btns: ['Print Receipt','Edit Order', 'Delete Order','Send Whatsapp'] },
 			{ condition: !this.doc.is_return && this.doc.docstatus === 1, visible_btns: ['Print Receipt', 'Email Receipt', 'Return']},
 			{ condition: this.doc.is_return && this.doc.docstatus === 1, visible_btns: ['Print Receipt', 'Email Receipt']}
 		];

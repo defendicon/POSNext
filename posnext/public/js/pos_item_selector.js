@@ -2,11 +2,13 @@ var view = "List"
 
 posnext.PointOfSale.ItemSelector = class {
 	// eslint-disable-next-line no-unused-vars
-	constructor({ frm, wrapper, events, pos_profile, settings,init_item_cart }) {
+	constructor({ frm, wrapper, events, pos_profile, settings,currency,init_item_cart,reload_status }) {
 		this.wrapper = wrapper;
 		this.events = events;
+		this.currency = currency;
 		this.pos_profile = pos_profile;
 		this.hide_images = settings.hide_images;
+		this.reload_status = reload_status
 		this.auto_add_item = settings.auto_add_item_to_cart;
 		if(settings.custom_default_view){
 			view = settings.custom_default_view
@@ -40,7 +42,8 @@ posnext.PointOfSale.ItemSelector = class {
 						<div class="label" style="grid-column: span 2 / span 2">${__('All Items')}</div>
 						<div class="list-view"><a class="list-span">List</a></div>
 						<div class="card-view"><a class="card-span">Card</a></div>
-						<div class="search-field"></div>
+						<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
+						<div class="search-field" style="grid-column: span 2 / span 2"></div>
 						<div class="item-group-field"></div>
 					</div>
 					<div class="items-container"></div>
@@ -57,7 +60,8 @@ posnext.PointOfSale.ItemSelector = class {
 						<div class="label" style="grid-column: span 2 / span 2">${__('All Items')}</div>
 						<div class="list-view"><a class="list-span">List</a></div>
 						<div class="card-view"><a class="card-span">Card</a></div>
-						<div class="search-field"></div>
+						<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
+						<div class="search-field" style="grid-column: span 2 / span 2"></div>
 						<div class="item-group-field"></div>
 					</div>
 					<div class="cart-container"></div>
@@ -195,8 +199,9 @@ posnext.PointOfSale.ItemSelector = class {
 		return this.$cart_items_wrapper.find(item_selector);
 	}
 	render_cart_item(item_data) {
-		const currency = this.events.get_frm().currency;
+
 		const me = this;
+		const currency = me.events.get_frm().currency || me.currency;
 		this.$cart_items_wrapper.append(
 			`<div class="cart-item-wrapper item-wrapper" 
 			data-item-code="${escape(item_data.item_code)}" 
@@ -295,6 +300,7 @@ posnext.PointOfSale.ItemSelector = class {
 	}
 	get_item_html(item) {
 		const me = this;
+		item.currency = item.currency  || me.currency
 		// eslint-disable-next-line no-unused-vars
 		const { item_image, serial_no, batch_no, barcode, actual_qty, uom, price_list_rate } = item;
 		const precision = flt(price_list_rate, 2) % 1 != 0 ? 2 : 0;
@@ -361,8 +367,34 @@ posnext.PointOfSale.ItemSelector = class {
 		const me = this;
 		const doc = me.events.get_frm().doc;
 		this.$component.find('.search-field').html('');
+		this.$component.find('.pos-profile').html('');
 		this.$component.find('.item-group-field').html('');
+		this.pos_profile_field = frappe.ui.form.make_control({
+			df: {
+				label: __('POS Profile'),
+				fieldtype: 'Link',
+				options: 'POS Profile',
+				placeholder: __('POS Profile'),
+                onchange: function () {
 
+					if(me.reload_status && me.pos_profile !== this.value){
+						frappe.pages['posnext'].refresh(window.wrapper,window.onScan,this.value)
+					}
+
+					// console.log("ON ON CHANGE")
+					// console.log(this.pos_profile_field)
+					// var value = this.pos_profile_field.get_value()
+					// if(value !== me.pos_profile){
+					// 	this.events.check_opening_entry()
+					// }
+					// window.wrapper.please_refresh = true
+					// frappe.pages['posnext'].refresh_data(window.wrapper)
+					// console.log("HEEEERE")
+                }
+			},
+			parent: this.$component.find('.pos-profile'),
+			render_input: false,
+		});
 		this.search_field = frappe.ui.form.make_control({
 			df: {
 				label: __('Search'),
@@ -395,6 +427,9 @@ posnext.PointOfSale.ItemSelector = class {
 			parent: this.$component.find('.item-group-field'),
 			render_input: true,
 		});
+		this.pos_profile_field.set_value(me.pos_profile)
+		this.pos_profile_field.refresh()
+		this.pos_profile_field.toggle_label(false);
 		this.search_field.toggle_label(false);
 		this.item_group_field.toggle_label(false);
 

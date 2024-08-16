@@ -3,16 +3,23 @@ posnext.PointOfSale.Controller = class {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper).find('.layout-main-section');
 		this.page = wrapper.page;
+		frappe.run_serially([
+			() => this.reload_status = false,
+			() => this.check_opening_entry(),
+			() => this.reload_status = true,
+		]);
 
-		this.check_opening_entry();
+
+
 	}
 
-	fetch_opening_entry() {
-		return frappe.call("posnext.posnext.page.posnext.point_of_sale.check_opening_entry", { "user": frappe.session.user });
+	fetch_opening_entry(value) {
+		return frappe.call("posnext.posnext.page.posnext.point_of_sale.check_opening_entry", { "user": frappe.session.user, "value": value });
 	}
 
-	check_opening_entry() {
-		this.fetch_opening_entry().then((r) => {
+	check_opening_entry(value = "") {
+
+		this.fetch_opening_entry(value).then((r) => {
 			if (r.message.length) {
 				// assuming only one opening voucher is available for the current user
 				this.prepare_app_defaults(r.message[0]);
@@ -117,7 +124,7 @@ posnext.PointOfSale.Controller = class {
 		this.pos_opening_time = data.period_start_date;
 		this.item_stock_map = {};
 		this.settings = {};
-
+		window.current_pos_profile = this.pos_profile
 		frappe.db.get_value('Stock Settings', undefined, 'allow_negative_stock').then(({ message }) => {
 			this.allow_negative_stock = flt(message.allow_negative_stock) || false;
 		});
@@ -127,8 +134,10 @@ posnext.PointOfSale.Controller = class {
 			args: { "pos_profile": this.pos_profile },
 			callback: (res) => {
 				const profile = res.message;
+
 				Object.assign(this.settings, profile);
 				this.settings.customer_groups = profile.customer_groups.map(group => group.name);
+
 				this.make_app();
 			}
 		});
@@ -240,12 +249,20 @@ posnext.PointOfSale.Controller = class {
 	}
 
 	init_item_selector() {
+		console.log("THIS FRRRRRM")
+		console.log(this.frm)
+		console.log(this.currency)
+
 		this.item_selector = new posnext.PointOfSale.ItemSelector({
 			wrapper: this.$components_wrapper,
 			pos_profile: this.pos_profile,
 			settings: this.settings,
+			reload_status: this.reload_status,
+			currency: this.settings.currency,
 			events: {
+				check_opening_entry: () => this.check_opening_entry(),
 				item_selected: args => this.on_cart_update(args),
+
 				init_item_cart: () => this.init_item_cart(),
 				init_item_details: () => this.init_item_details(),
 				change_items: (args) => this.change_items(args),
@@ -426,6 +443,7 @@ posnext.PointOfSale.Controller = class {
 					this.recent_order_list.toggle_component(false);
 					this.cart.load_invoice()
 					this.item_selector.toggle_component(true)
+					this.wrapper.find('.past-order-summary').css("display","none");
 				},
 
 			}
@@ -435,6 +453,7 @@ posnext.PointOfSale.Controller = class {
 	init_order_summary() {
 		this.order_summary = new posnext.PointOfSale.PastOrderSummary({
 			wrapper: this.$components_wrapper,
+			pos_profile: this.settings,
 			events: {
 				get_frm: () => this.frm,
 

@@ -5,15 +5,16 @@ frappe.pages['posnext'].on_page_load = function(wrapper) {
 		title: __('Point of Sale'),
 		single_column: true
 	});
-	// frappe.require('pos_controller.js', function() {
+		window.wrapper = wrapper
 		wrapper.pos = new posnext.PointOfSale.Controller(wrapper);
 		window.cur_pos = wrapper.pos;
-	// });
 }
-frappe.pages['posnext'].refresh = function(wrapper) {
-	if (document.scannerDetectionData) {
-		onScan.detachFrom(document);
+frappe.pages['posnext'].refresh = function(wrapper,onscan = "",value="") {
+	// if (document.scannerDetectionData) {
+		if(!onscan){
+			window.onScan.detachFrom(document)
+		}
 		wrapper.pos.wrapper.html("");
-		wrapper.pos.check_opening_entry();
-	}
+		wrapper.pos.check_opening_entry(value);
+	// }
 };
