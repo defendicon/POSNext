@@ -1,3 +1,4 @@
+frappe.provide('posnext.PointOfSale');
 var invoicess = []
 posnext.PointOfSale.PastOrderList = class {
 	constructor({ wrapper, events }) {

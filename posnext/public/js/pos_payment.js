@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+frappe.provide('posnext.PointOfSale');
 posnext.PointOfSale.Payment = class {
 	constructor({ events, wrapper }) {
 		this.wrapper = wrapper;

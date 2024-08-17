@@ -1,3 +1,4 @@
+frappe.provide('posnext.PointOfSale');
 posnext.PointOfSale.ItemDetails = class {
 	constructor({ wrapper, events, settings }) {
 		this.wrapper = wrapper;

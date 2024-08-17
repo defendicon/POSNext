@@ -1,3 +1,4 @@
+frappe.provide('posnext.PointOfSale');
 posnext.PointOfSale.PastOrderSummary = class {
 	constructor({ wrapper, pos_profile,events }) {
 		this.wrapper = wrapper;
@@ -20,8 +21,8 @@ posnext.PointOfSale.PastOrderSummary = class {
 				<div class="no-summary-placeholder">
 					${__('Select an invoice to load summary data')}
 				</div>
-				<div class="invoice-summary-wrapper" style="width: 100%">
-					<div class="abs-container" style="width:">
+				<div class="invoice-summary-wrapper" >
+					<div class="abs-container" >
 						<div class="upper-section"></div>
 						<div class="label">${__('Items')}</div>
 						<div class="items-container summary-container"></div>
@@ -341,7 +342,7 @@ posnext.PointOfSale.PastOrderSummary = class {
 
 	get_condition_btn_map(after_submission) {
 		if (after_submission)
-			return [{ condition: true, visible_btns: ['Print Receipt', 'Email Receipt', 'New Order'] }];
+			return [{ condition: true, visible_btns: ['Print Receipt', 'Email Receipt','Send Whatsapp', 'New Order'] }];
 
 		return [
 			{ condition: this.doc.docstatus === 0, visible_btns: ['Print Receipt','Edit Order', 'Delete Order','Send Whatsapp'] },
@@ -370,6 +371,7 @@ posnext.PointOfSale.PastOrderSummary = class {
 		const condition_btns_map = this.get_condition_btn_map(after_submission);
 
 		this.add_summary_btns(condition_btns_map);
+		this.$summary_wrapper.css("width",after_submission ? "35%" : "60%")
 	}
 
 	attach_document_info(doc) {

@@ -1,3 +1,4 @@
+frappe.provide('posnext.PointOfSale');
 posnext.PointOfSale.ItemCart = class {
 	constructor({ wrapper, events, settings }) {
 		this.wrapper = wrapper;

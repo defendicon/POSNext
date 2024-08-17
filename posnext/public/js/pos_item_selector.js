@@ -1,3 +1,4 @@
+frappe.provide('posnext.PointOfSale');
 var view = "List"
 
 posnext.PointOfSale.ItemSelector = class {

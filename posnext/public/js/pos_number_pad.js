@@ -1,3 +1,4 @@
+frappe.provide('posnext.PointOfSale');
 posnext.PointOfSale.NumberPad = class {
 	constructor({ wrapper, events, cols, keys, css_classes, fieldnames_map }) {
 		this.wrapper = wrapper;
