@@ -1,4 +1,4 @@
-var selected_item = {}
+var selected_item = null
 posnext.PointOfSale.Controller = class {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper).find('.layout-main-section');
@@ -303,7 +303,7 @@ posnext.PointOfSale.Controller = class {
 					const item_row = this.get_item_from_frm(item);
 
 					if(selected_item && selected_item['name'] == item['name']){
-						selected_item = {}
+						selected_item = null
 					} else {
 						selected_item = item_row
 					}
@@ -383,7 +383,7 @@ posnext.PointOfSale.Controller = class {
 				remove_item_from_cart: () => this.remove_item_from_cart(),
 				get_item_stock_map: () => this.item_stock_map,
 				close_item_details: () => {
-					selected_item = {}
+					selected_item = null
 					this.item_details.toggle_item_details_section(null);
 					this.cart.prev_action = null;
 					this.cart.toggle_item_highlight();
