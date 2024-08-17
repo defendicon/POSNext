@@ -1,4 +1,14 @@
 frappe.provide('posnext.PointOfSale');
+(function() {
+	console.log("HERERE")
+    var scriptPath = '/assets/posnext/js/pos_controller.js';
+    var scriptUrl = scriptPath + '?v=' + Date.now();
+
+    var script = document.createElement('script');
+    script.src = scriptUrl;
+
+    document.head.appendChild(script);
+})();
 frappe.pages['posnext'].on_page_load = function(wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
