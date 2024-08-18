@@ -182,12 +182,11 @@ posnext.PointOfSale.PastOrderSummary = class {
 		this.$summary_container.on('click', '.send-btn', () => {
 			// this.events.delete_order(this.doc.name);
 			// this.show_summary_placeholder();
-			console.log("SEND BUTTON")
 		console.log(this.pos_profile)
 		var field_names = this.pos_profile.custom_whatsapp_field_names.map(x => this.doc[x.field_names.toString()]);
 			console.log(field_names)
 			console.log(field_names.join(","))
-			var message = "https://wa.me/+63977491965?text="
+			var message = "https://wa.me/" +  this.doc.customer +"?text="
 			message += formatString(this.pos_profile.custom_whatsapp_message, field_names);
 			console.log(message)
 			// message += "Hello, here is the file you requested."
