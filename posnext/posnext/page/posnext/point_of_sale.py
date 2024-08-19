@@ -394,7 +394,6 @@ from frappe.utils.file_manager import save_file
 @frappe.whitelist()
 def generate_pdf_and_save(docname, doctype, print_format=None):
 	# Get the HTML content of the print format
-	print("HEEEEEEEEEEEEEEEEEEERE")
 	data = frappe.get_doc(doctype,docname)
 	html = frappe.get_print(doctype, docname, print_format)
 
@@ -402,7 +401,7 @@ def generate_pdf_and_save(docname, doctype, print_format=None):
 	pdf_data = get_pdf(html)
 
 	# Define file name
-	file_name = f"{data.customer_name + ' - ' + docname.split('-')[-1]}.pdf"
+	file_name = f"{data.customer_name + docname.split('-')[-1]}.pdf"
 
 	# Save the PDF as a file
 	file_doc = save_file(file_name, pdf_data, doctype, docname, is_private=0)
