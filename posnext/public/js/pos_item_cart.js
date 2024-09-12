@@ -1052,12 +1052,12 @@ numpad_num.on('click', '.delete', function() {
 		} else if (current_action === 'checkout') {
 			this.prev_action = undefined;
 			this.toggle_item_highlight();
-			this.events.numpad_event(undefined, current_action);
+			// this.events.numpad_event(undefined, current_action);
 			return;
 		} else if (current_action === 'remove') {
 			this.prev_action = undefined;
 			this.toggle_item_highlight();
-			this.events.numpad_event(undefined, current_action);
+			// this.events.numpad_event(undefined, current_action);
 			return;
 		} else {
 			this.numpad_value = current_action === 'delete' ? this.numpad_value.slice(0, -1) : this.numpad_value + current_action;
