@@ -126,9 +126,9 @@ doctype_js = {"POS Profile" : "public/js/pos_profile.js"}
 # ---------------
 # Override standard doctype classes
 
-# override_doctype_class = {
-# 	"ToDo": "custom_app.overrides.CustomToDo"
-# }
+override_doctype_class = {
+	"POS Invoice": "posnext.events.pos_invoice.CustomPOSInvoice",
+}
 
 # Document Events
 # ---------------
