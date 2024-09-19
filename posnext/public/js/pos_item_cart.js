@@ -11,6 +11,7 @@ posnext.PointOfSale.ItemCart = class {
 		this.show_held_button = settings.custom_show_held_button;
 		this.show_order_list_button = settings.custom_show_order_list_button;
 		this.mobile_number_based_customer = settings.custom_mobile_number_based_customer;
+		this.add_qty = settings.custom_add_qty;
 		this.show_checkout_button = settings.custom_show_checkout_button;
 		this.settings = settings;
 		this.init_component();
@@ -161,7 +162,9 @@ this.highlight_checkout_btn(true);
 			wrapper: this.$numpad_section,
 			events: {
 				numpad_event: this.on_numpad_event.bind(this)
+				
 			},
+			
 			cols: 5,
 			keys: [
 				[ 1, 2, 3, 'Quantity' ],
@@ -177,6 +180,7 @@ this.highlight_checkout_btn(true);
 			],
 			fieldnames_map: { 'Quantity': 'qty', 'Discount': 'discount_percentage' }
 		})
+		console.log("test")
 
 		this.$numpad_section.prepend(
 			`<div class="numpad-totals">
@@ -208,22 +212,23 @@ this.highlight_checkout_btn(true);
 			me.toggle_customer_info(show);
 		});
 
-		this.$cart_items_wrapper.on('click', '.cart-item-wrapper', function() {
+		this.$cart_items_wrapper.on('dblclick', '.cart-item-wrapper', function() {
 			const $cart_item = $(this);
-
+		
 			me.toggle_item_highlight(this);
-
+		
 			const payment_section_hidden = !me.$totals_section.find('.edit-cart-btn').is(':visible');
 			if (!payment_section_hidden) {
 				// payment section is visible
 				// edit cart first and then open item details section
 				me.$totals_section.find(".edit-cart-btn").click();
 			}
-
+		
 			const item_row_name = unescape($cart_item.attr('data-row-name'));
 			me.events.cart_item_clicked({ name: item_row_name });
 			this.numpad_value = '';
 		});
+		
 
 		this.$component.on('click', '.checkout-btn', async function() {
 			if ($(this).attr('style').indexOf('--blue-500') == -1) return;
@@ -258,7 +263,7 @@ this.highlight_checkout_btn(true);
 								customer: values['mobile_number']
 							},
 							freeze: true,
-							freeze_message: "Creating Customer....",
+							freeze_message: "Creati100000001ng Customer....",
 							callback: async function(){
 								const frm = me.events.get_frm();
 								frappe.dom.freeze();
@@ -456,7 +461,7 @@ this.highlight_checkout_btn(true);
 				numpad_num.on('click', '.clear', function() {
 						d.set_value('mobile_number', "");
 					})
-numpad_num.on('click', '.delete', function() {
+				numpad_num.on('click', '.delete', function() {
 					var current_value = d.get_value("mobile_number")
 						d.set_value('mobile_number', current_value.slice(0, -1));
 					})
@@ -841,81 +846,71 @@ numpad_num.on('click', '.delete', function() {
 	render_cart_item(item_data, $item_to_update) {
 		const currency = this.events.get_frm().doc.currency;
 		const me = this;
-
+	
 		if (!$item_to_update.length) {
 			this.$cart_items_wrapper.append(
 				`<div class="cart-item-wrapper" data-row-name="${escape(item_data.name)}"></div>
-				<div class="seperator"></div>`
-			)
+				<div class="separator"></div>`
+			);
 			$item_to_update = this.get_cart_item(item_data);
 		}
-
+	
 		$item_to_update.html(
 			`${get_item_image_html()}
 			<div class="item-name-desc">
-				<div class="item-name">
-					${item_data.item_name}
-				</div>
+				<div class="item-name">${item_data.item_name}</div>
 				${get_description_html()}
 			</div>
 			${get_rate_discount_html()}`
-		)
-
+		);
+	
 		set_dynamic_rate_header_width();
-
+		attach_event_handlers();
+	
 		function set_dynamic_rate_header_width() {
 			const rate_cols = Array.from(me.$cart_items_wrapper.find(".item-rate-amount"));
 			me.$cart_header.find(".rate-amount-header").css("width", "");
 			me.$cart_items_wrapper.find(".item-rate-amount").css("width", "");
 			let max_width = rate_cols.reduce((max_width, elm) => {
-				if ($(elm).width() > max_width)
-					max_width = $(elm).width();
-				return max_width;
+				return $(elm).width() > max_width ? $(elm).width() : max_width;
 			}, 0);
-
+	
 			max_width += 1;
-			if (max_width == 1) max_width = "";
-
+			if (max_width === 1) max_width = "";
+	
 			me.$cart_header.find(".rate-amount-header").css("width", max_width);
 			me.$cart_items_wrapper.find(".item-rate-amount").css("width", max_width);
 		}
-
+	
 		function get_rate_discount_html() {
-			if (item_data.rate && item_data.amount && item_data.rate !== item_data.amount) {
-				return `
-					<div class="item-qty-rate">
-						<div class="item-qty"><span>${item_data.qty || 0} ${item_data.uom}</span></div>
-						<div class="item-rate-amount">
-							<div class="item-rate">${format_currency(item_data.amount, currency)}</div>
-							<div class="item-amount">${format_currency(item_data.rate, currency)}</div>
-						</div>
-					</div>`
-			} else {
-				return `
-					<div class="item-qty-rate">
-						<div class="item-qty"><span>${item_data.qty || 0} ${item_data.uom}</span></div>
-						<div class="item-rate-amount">
-							<div class="item-rate">${format_currency(item_data.rate, currency)}</div>
-						</div>
-					</div>`
-			}
+			return `
+				<div class="item-qty-rate">
+					<div class="item-qty">
+						<input type="text" value="${item_data.qty || 0}" data-uom="${item_data.uom}" data-fieldtype="Float" data-fieldname="qty" class="edit-qty" style="width: 49px;">
+					</div>
+					<div class="item-rate-amount">
+						<div class="item-rate">${format_currency(item_data.rate, currency)}</div>
+						${item_data.amount ? `<div class="item-amount">${format_currency(item_data.amount, currency)}</div>` : ''}
+					</div>
+				</div>`;
 		}
-
+	
 		function get_description_html() {
 			if (item_data.description) {
-				if (item_data.description.indexOf('<div>') != -1) {
+				let description = item_data.description;
+				if (description.indexOf('<div>') !== -1) {
 					try {
-						item_data.description = $(item_data.description).text();
+						description = $(description).text();
 					} catch (error) {
-						item_data.description = item_data.description.replace(/<div>/g, ' ').replace(/<\/div>/g, ' ').replace(/ +/g, ' ');
+						description = description.replace(/<div>/g, ' ').replace(/<\/div>/g, ' ').replace(/ +/g, ' ');
 					}
 				}
-				item_data.description = frappe.ellipsis(item_data.description, 45);
-				return `<div class="item-desc">${item_data.description}</div>`;
+				description = frappe.ellipsis(description, 45);
+				return `<div class="item-desc">${description}</div>`;
 			}
 			return ``;
 		}
-
+	
 		function get_item_image_html() {
 			const { image, item_name } = item_data;
 			if (!me.hide_images && image) {
@@ -923,13 +918,23 @@ numpad_num.on('click', '.delete', function() {
 					<div class="item-image">
 						<img
 							onerror="cur_pos.cart.handle_broken_image(this)"
-							src="${image}" alt="${frappe.get_abbr(item_name)}"">
+							src="${image}" alt="${frappe.get_abbr(item_name)}">
 					</div>`;
 			} else {
 				return `<div class="item-image item-abbr">${frappe.get_abbr(item_name)}</div>`;
 			}
 		}
+	
+		function attach_event_handlers() {
+			$item_to_update.find('.edit-qty').on('change', function() {
+				const new_qty = parseFloat($(this).val()) || 0;
+				console.log(`Input changed. New quantity: ${new_qty}`);
+				item_data.qty = new_qty;
+				me.render_cart_item(item_data, $item_to_update);
+			});
+		}
 	}
+	
 
 	handle_broken_image($img) {
 		const item_abbr = $($img).attr('alt');
@@ -1085,6 +1090,11 @@ numpad_num.on('click', '.delete', function() {
 		}
 
 		this.highlight_numpad_btn($btn, current_action);
+		if (this.prev_action && this.numpad_value !== undefined) {
+			const item_data = this.get_item_data_for_update();
+			item_data[this.prev_action] = this.numpad_value;
+			this.render_cart_item(item_data, this.get_cart_item(item_data));
+		}
 		this.events.numpad_event(this.numpad_value, this.prev_action);
 	}
 
@@ -1096,7 +1106,6 @@ numpad_num.on('click', '.delete', function() {
 			$btn.addClass('highlighted-numpad-btn');
 		}
 		if (this.prev_action === curr_action && curr_action_is_highlighted) {
-			// if Qty is pressed twice
 			$btn.removeClass('highlighted-numpad-btn');
 		}
 		if (this.prev_action && this.prev_action !== curr_action && curr_action_is_action) {
