@@ -21,7 +21,7 @@ posnext.PointOfSale.Controller = class {
 	}
 
 	check_opening_entry(value = "") {
-
+		console.log("CHECK OPEEENING")
 		this.fetch_opening_entry(value).then((r) => {
 			if (r.message.length) {
 				// assuming only one opening voucher is available for the current user
@@ -299,8 +299,6 @@ posnext.PointOfSale.Controller = class {
 				get_frm: () => this.frm,
 
 				cart_item_clicked: (item) => {
-					console.log("ITEEEEEEEM")
-					console.log(item)
 
 					const item_row = this.get_item_from_frm(item);
 
@@ -548,8 +546,6 @@ posnext.PointOfSale.Controller = class {
 					this.frm.doc.items = [];
 					this.frm.doc.is_pos = 1
 					this.frm.doc.set_warehouse = this.settings.warehouse
-					console.log("THIS FRRRRM")
-					console.log(this.frm.doc)
 					resolve();
 				});
 			}
@@ -694,9 +690,10 @@ posnext.PointOfSale.Controller = class {
 			// then "item_code, batch_no, uom, rate" will help in getting the exact item
 			// to increase the qty by one
 			const has_batch_no = (batch_no !== 'null' && batch_no !== null);
+			const batch_no_check = this.settings.custom_allow_add_new_items_on_new_line ? (has_batch_no && i.batch_no === batch_no) : true
 			item_row = this.frm.doc.items.find(
 				i => i.item_code === item_code
-					&& (has_batch_no && i.batch_no === batch_no)
+					&& batch_no_check
 					&& (i.uom === uom)
 					&& (i.rate === flt(rate))
 			);

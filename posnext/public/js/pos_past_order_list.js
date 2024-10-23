@@ -94,7 +94,7 @@ posnext.PointOfSale.PastOrderList = class {
 		this.$invoices_container.html('');
 
 		return frappe.call({
-			method: "erpnext.selling.page.point_of_sale.point_of_sale.get_past_order_list",
+			method: "posnext.posnext.page.posnext.point_of_sale.get_past_order_list",
 			freeze: true,
 			args: { search_term, status },
 			callback: (response) => {

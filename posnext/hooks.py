@@ -251,4 +251,14 @@ fixtures = [
             ]
         ]
 	},
+	{
+		"doctype":"Property Setter",
+		"filters": [
+			[
+				"module",
+				"in",
+				["Posnext"]
+            ]
+        ]
+	},
 ]

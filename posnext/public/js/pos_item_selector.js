@@ -20,6 +20,7 @@ posnext.PointOfSale.ItemSelector = class {
 		if(settings.custom_show_only_card_view){
 			view = "Card"
 		}
+		this.custom_show_item_code = settings.custom_show_item_code
 		this.show_only_list_view = settings.custom_show_only_list_view
 		this.show_only_card_view = settings.custom_show_only_card_view
 		this.inti_component();
@@ -147,7 +148,7 @@ posnext.PointOfSale.ItemSelector = class {
 		!item_group && (item_group = this.parent_item_group);
 
 		return frappe.call({
-			method: "erpnext.selling.page.point_of_sale.point_of_sale.get_items",
+			method: "posnext.posnext.page.posnext.point_of_sale.get_items",
 			freeze: true,
 			args: { start, page_length, price_list, item_group, search_term, pos_profile },
 		});
@@ -156,18 +157,31 @@ posnext.PointOfSale.ItemSelector = class {
 
 	render_item_list(items) {
 		this.$items_container.html('');
+		console.log("THIIIIIIIIIIIIIIS")
+				console.log(this)
+		var me = this
 		if(view === "List"){
 			this.$items_container.append(
-			`<div class="abs-cart-container" style="overflow-y:hidden">
+				`<div class="abs-cart-container" style="overflow-y:hidden">
 					<div class="cart-header">
-						<div style="flex: 3">${__('Item')}</div>
+					${get_item_code_header()}
 						<div style="flex: 1">${__('Rate')}</div>
 						<div style="flex: 1">${__('Available Qty')}</div>
 						<div class="qty-header">${__('UOM')}</div>
 					</div>
 					<div class="cart-items-section" style="overflow-y:hidden"></div>
-				</div>`
-			);
+				</div>`)
+
+			function get_item_code_header() {
+
+				console.log(me.custom_show_item_code)
+				if(me.custom_show_item_code){
+					return `<div style="flex: 2">${__('Item')}</div>
+						<div style="flex: 1">${__('Item Code')}</div>`
+				} else {
+					return `<div style="flex: 3">${__('Item')}</div>`
+				}
+            }
 			this.make_cart_items_section();
 			items.forEach(item => {
 
@@ -218,15 +232,24 @@ posnext.PointOfSale.ItemSelector = class {
 
 		$item_to_update.html(
 			`${get_item_image_html()}
-			<div class="item-name-desc" style="flex: 4">
+			${get_item_name()}
+			
 				<div class="item-name" >
 					${item_data.item_name}
 				</div>
 				${get_description_html()}
 			</div>
+			${get_item_code()}
 			${get_rate_discount_html()}`
 		)
 
+		function get_item_name() {
+			if(me.custom_show_item_code){
+				return `<div class="item-name-desc" style="flex: 3">`
+			} else {
+				return `<div class="item-name-desc" style="flex: 4">`
+			}
+        }
 		set_dynamic_rate_header_width();
 
 		function set_dynamic_rate_header_width() {
@@ -245,7 +268,17 @@ posnext.PointOfSale.ItemSelector = class {
 			me.$cart_header.find(".rate-amount-header").css("width", max_width);
 			me.$cart_items_wrapper.find(".item-rate-amount").css("width", max_width);
 		}
-
+		function get_item_code() {
+			if(me.custom_show_item_code){
+				return `<div class="item-code-desc" style="flex: 1">
+					<div class="item-code" >
+						${item_data.item_code}
+					</div>
+				</div>`
+			} else {
+				return ``
+			}
+        }
 		function get_rate_discount_html() {
 			if (item_data.rate && item_data.amount && item_data.rate !== item_data.amount) {
 				return `
@@ -418,7 +451,7 @@ posnext.PointOfSale.ItemSelector = class {
 				},
 				get_query: function () {
 					return {
-						query: 'erpnext.selling.page.point_of_sale.point_of_sale.item_group_query',
+						query: 'posnext.posnext.page.posnext.point_of_sale.item_group_query',
 						filters: {
 							pos_profile: doc ? doc.pos_profile : ''
 						}

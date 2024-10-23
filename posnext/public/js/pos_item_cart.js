@@ -1236,7 +1236,7 @@ numpad_num.on('click', '.delete', function() {
 
 			if (this.value && current_value != this.value && this.df.fieldname != 'loyalty_points') {
 				frappe.call({
-					method: 'erpnext.selling.page.point_of_sale.point_of_sale.set_customer_info',
+					method: 'posnext.posnext.page.posnext.point_of_sale.set_customer_info',
 					args: {
 						fieldname: this.df.fieldname,
 						customer: current_customer,
