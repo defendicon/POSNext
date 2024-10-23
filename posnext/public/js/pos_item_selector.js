@@ -20,6 +20,7 @@ posnext.PointOfSale.ItemSelector = class {
 		if(settings.custom_show_only_card_view){
 			view = "Card"
 		}
+		this.custom_show_item_code = settings.custom_show_item_code
 		this.show_only_list_view = settings.custom_show_only_list_view
 		this.show_only_card_view = settings.custom_show_only_card_view
 		this.inti_component();
@@ -155,19 +156,29 @@ posnext.PointOfSale.ItemSelector = class {
 
 
 	render_item_list(items) {
-		this.$items_container.html('');
+		var  me  = this
 		if(view === "List"){
+		this.$items_container.html('');
 			this.$items_container.append(
-			`<div class="abs-cart-container" style="overflow-y:hidden">
+				`<div class="abs-cart-container" style="overflow-y:hidden">
 					<div class="cart-header">
-						<div style="flex: 3">${__('Item')}</div>
+					${get_item_code_header()}
 						<div style="flex: 1">${__('Rate')}</div>
 						<div style="flex: 1">${__('Available Qty')}</div>
 						<div class="qty-header">${__('UOM')}</div>
 					</div>
 					<div class="cart-items-section" style="overflow-y:hidden"></div>
-				</div>`
-			);
+				</div>`)
+
+			function get_item_code_header() {
+
+				if(me.custom_show_item_code){
+					return `<div style="flex: 2">${__('Item')}</div>
+						<div style="flex: 1">${__('Item Code')}</div>`
+				} else {
+					return `<div style="flex: 3">${__('Item')}</div>`
+				}
+            }
 			this.make_cart_items_section();
 			items.forEach(item => {
 
@@ -218,15 +229,33 @@ posnext.PointOfSale.ItemSelector = class {
 
 		$item_to_update.html(
 			`${get_item_image_html()}
-			<div class="item-name-desc" style="flex: 4">
+			${get_item_name()}
 				<div class="item-name" >
 					${item_data.item_name}
 				</div>
 				${get_description_html()}
 			</div>
+			${get_item_code()}
 			${get_rate_discount_html()}`
 		)
-
+			function get_item_name() {
+			if(me.custom_show_item_code){
+				return `<div class="item-name-desc" style="flex: 3">`
+			} else {
+				return `<div class="item-name-desc" style="flex: 4">`
+			}
+        }
+        function get_item_code() {
+			if(me.custom_show_item_code){
+				return `<div class="item-code-desc" style="flex: 1">
+					<div class="item-code" >
+						${item_data.item_code}
+					</div>
+				</div>`
+			} else {
+				return ``
+			}
+        }
 		set_dynamic_rate_header_width();
 
 		function set_dynamic_rate_header_width() {
