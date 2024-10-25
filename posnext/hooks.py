@@ -238,6 +238,9 @@ doctype_js = {"POS Profile" : "public/js/pos_profile.js"}
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
+override_doctype_class = {
+	"Sales Invoice": "posnext.overrides.sales_invoice.PosnextSalesInvoice",
+}
 
 
 fixtures = [
