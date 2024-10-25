@@ -408,3 +408,11 @@ def generate_pdf_and_save(docname, doctype, print_format=None):
 	print("FILE DOOOOC")
 	print(file_doc)
 	return file_doc
+
+@frappe.whitelist()
+def make_sales_return(source_name, target_doc=None):
+	from erpnext.controllers.sales_and_purchase_return import make_return_doc
+
+	si_return = make_return_doc("Sales Invoice", source_name, target_doc)
+	si = frappe.get_doc(si_return).insert(ignore_permissions=1)
+	si.submit()
