@@ -629,7 +629,6 @@ posnext.PointOfSale.Controller = class {
 				}
 				frappe.flags.ignore_company_party_validation = true
 				const { item_code, batch_no, serial_no, rate, uom } = item;
-
 				if (!item_code)
 					return;
 
@@ -644,16 +643,16 @@ posnext.PointOfSale.Controller = class {
 
 				if (field === 'serial_no')
 					new_item['qty'] = value.split(`\n`).length || 0;
-
+				console.log("NEW ITEEEEEEEM")
+				console.log(new_item)
 				item_row = this.frm.add_child('items', new_item);
 
 				if (field === 'qty' && value !== 0 && !this.allow_negative_stock) {
 					const qty_needed = value * item_row.conversion_factor;
 					await this.check_stock_availability(item_row, qty_needed, this.frm.doc.set_warehouse);
 				}
-
 				await this.trigger_new_item_events(item_row);
-
+item_row['rate'] = rate
 				this.update_cart_html(item_row);
 
 				if (this.item_details.$component.is(':visible'))
@@ -661,12 +660,14 @@ posnext.PointOfSale.Controller = class {
 
 				if (this.check_serial_batch_selection_needed(item_row) && !this.item_details.$component.is(':visible'))
 					this.edit_item_details_of(item_row);
+
 			}
 
 		} catch (error) {
 			console.log(error);
 		} finally {
 			frappe.dom.unfreeze();
+
 			return item_row; // eslint-disable-line no-unsafe-finally
 		}
 	}
@@ -686,17 +687,24 @@ posnext.PointOfSale.Controller = class {
 		if (name) {
 			item_row = this.frm.doc.items.find(i => i.name == name);
 		} else {
+			console.log("ELSSSSE")
 			// if item is clicked twice from item selector
 			// then "item_code, batch_no, uom, rate" will help in getting the exact item
 			// to increase the qty by one
 			const has_batch_no = (batch_no !== 'null' && batch_no !== null);
 			const batch_no_check = this.settings.custom_allow_add_new_items_on_new_line ? (has_batch_no && i.batch_no === batch_no) : true
+			console.log(batch_no_check)
+			console.log(uom)
+			console.log(flt(rate))
+			console.log(item_code)
+			console.log(this.frm.doc.items)
 			item_row = this.frm.doc.items.find(
 				i => i.item_code === item_code
 					&& batch_no_check
 					&& (i.uom === uom)
 					&& (i.rate === flt(rate))
 			);
+			console.log(item_row)
 		}
 		return item_row || {};
 	}
