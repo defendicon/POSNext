@@ -171,9 +171,9 @@ doctype_js = {"POS Profile" : "public/js/pos_profile.js"}
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "posnext.event.get_events"
-# }
+override_whitelisted_methods = {
+	"erpnext.accounts.doctype.pos_closing_entry.pos_closing_entry.get_pos_invoices": "posnext.overrides.pos_closing_entry.get_pos_invoices"
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,

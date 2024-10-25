@@ -574,8 +574,8 @@ posnext.PointOfSale.Controller = class {
 			},
 			callback: (r) => {
 				// console.log(r.message)
-				// frappe.model.sync(r.message);
-				// frappe.get_doc(r.message.doctype, r.message.name).__run_link_triggers = false;
+				frappe.model.sync(r.message);
+				frappe.get_doc(r.message.doctype, r.message.name).__run_link_triggers = false;
 				this.set_pos_profile_data().then(() => {
 					frappe.dom.unfreeze();
 				});
