@@ -134,11 +134,11 @@ doctype_js = {"POS Profile" : "public/js/pos_profile.js"}
 # ---------------
 # Hook on document methods and events
 
-doc_events = {
-	"Sales Invoice": {
-		"validate": "posnext.doc_events.sales_invoice.validate_si"
-	}
-}
+# doc_events = {
+# 	"Sales Invoice": {
+# 		"validate": "posnext.doc_events.sales_invoice.validate_si"
+# 	}
+# }
 
 # Scheduled Tasks
 # ---------------
