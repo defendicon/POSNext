@@ -538,6 +538,7 @@ posnext.PointOfSale.Payment = class {
 
 	update_totals_section(doc) {
 		if (!doc) doc = this.events.get_frm().doc;
+		doc.paid_amount = doc.grand_total
 		const paid_amount = doc.paid_amount;
 		const grand_total = cint(frappe.sys_defaults.disable_rounded_total) ? doc.grand_total : doc.rounded_total;
 		const remaining = grand_total - doc.paid_amount;

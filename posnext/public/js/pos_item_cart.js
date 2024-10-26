@@ -480,7 +480,7 @@ numpad_num.on('click', '.delete', function() {
 			if(!this.discount_field || can_edit_discount) this.show_discount_control();
 		});
 
-		frappe.ui.form.on("POS Invoice", "paid_amount", frm => {
+		frappe.ui.form.on("Sales Invoice", "paid_amount", frm => {
 			// called when discount is applied
 			this.update_totals_section(frm);
 		});
@@ -1258,7 +1258,7 @@ numpad_num.on('click', '.delete', function() {
 	}
 
 	fetch_customer_transactions() {
-		frappe.db.get_list('POS Invoice', {
+		frappe.db.get_list('Sales Invoice', {
 			filters: { customer: this.customer_info.customer, docstatus: 1 },
 			fields: ['name', 'grand_total', 'status', 'posting_date', 'posting_time', 'currency'],
 			limit: 20
