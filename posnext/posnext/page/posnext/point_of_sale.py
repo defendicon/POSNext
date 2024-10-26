@@ -17,7 +17,7 @@ from erpnext.stock.utils import scan_barcode
 def search_by_term(search_term, warehouse, price_list):
 	result = search_for_serial_or_batch_or_barcode_number(search_term) or {}
 
-	item_code = result.get("item_code", search_term)
+	item_code = ""
 	serial_no = result.get("serial_no", "")
 	batch_no = result.get("batch_no", "")
 	barcode = result.get("barcode", "")

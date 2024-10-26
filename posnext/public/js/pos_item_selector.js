@@ -41,11 +41,12 @@ posnext.PointOfSale.ItemSelector = class {
 			this.wrapper.append(
 				`<section class="items-selector" id="card-view-section">
 					<div class="filter-section">
-						<div class="label" style="grid-column: span 2 / span 2">${__('All Items')}</div>
+						<div class="label" style="grid-column: span 1 / span 1">${__('All Items')}</div>
 						<div class="list-view"><a class="list-span">List</a></div>
 						<div class="card-view"><a class="card-span">Card</a></div>
 						<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
 						<div class="search-field" style="grid-column: span 2 / span 2"></div>
+						<div class="item-code-search-field" style="grid-column: span 2 / span 2"></div>
 						<div class="item-group-field"></div>
 					</div>
 					<div class="items-container"></div>
@@ -59,11 +60,12 @@ posnext.PointOfSale.ItemSelector = class {
 			this.wrapper.append(
 				`<section class="customer-cart-container items-selector" id="list-view-section" style="grid-column: span 6 / span 6;overflow-y:hidden">
 					<div class="filter-section">
-						<div class="label" style="grid-column: span 2 / span 2">${__('All Items')}</div>
+						<div class="label" style="grid-column: span 1 / span 1">${__('All Items')}</div>
 						<div class="list-view"><a class="list-span">List</a></div>
 						<div class="card-view"><a class="card-span">Card</a></div>
 						<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
 						<div class="search-field" style="grid-column: span 2 / span 2"></div>
+						<div class="item-code-search-field" style="grid-column: span 2 / span 2"></div>
 						<div class="item-group-field"></div>
 					</div>
 					<div class="cart-container"></div>
@@ -157,8 +159,6 @@ posnext.PointOfSale.ItemSelector = class {
 
 	render_item_list(items) {
 		this.$items_container.html('');
-		console.log("THIIIIIIIIIIIIIIS")
-				console.log(this)
 		var me = this
 		if(view === "List"){
 			this.$items_container.append(
@@ -401,6 +401,7 @@ posnext.PointOfSale.ItemSelector = class {
 		const me = this;
 		const doc = me.events.get_frm().doc;
 		this.$component.find('.search-field').html('');
+		this.$component.find('.item-code-search-field').html('');
 		this.$component.find('.pos-profile').html('');
 		this.$component.find('.item-group-field').html('');
 		this.pos_profile_field = frappe.ui.form.make_control({
@@ -433,11 +434,12 @@ posnext.PointOfSale.ItemSelector = class {
 			df: {
 				label: __('Search'),
 				fieldtype: 'Data',
-				placeholder: __('Search by item code, serial number or barcode')
+				placeholder: __('Search by serial number or barcode')
 			},
 			parent: this.$component.find('.search-field'),
 			render_input: true,
 		});
+
 		this.item_group_field = frappe.ui.form.make_control({
 			df: {
 				label: __('Item Group'),
@@ -554,7 +556,7 @@ posnext.PointOfSale.ItemSelector = class {
 				value: "+1",
 				item: { item_code, batch_no, serial_no, uom, rate }
 			});
-			me.search_field.set_focus();
+			// me.search_field.set_focus();
 		});
 
 		this.search_field.$input.on('input', (e) => {
@@ -564,16 +566,16 @@ posnext.PointOfSale.ItemSelector = class {
 				this.filter_items({ search_term });
 			}, 300);
 
-			this.$clear_search_btn.toggle(
-				Boolean(this.search_field.$input.val())
-			);
+			// this.$clear_search_btn.toggle(
+			// 	Boolean(this.search_field.$input.val())
+			// );
 		});
 
-		this.search_field.$input.on('focus', () => {
-			this.$clear_search_btn.toggle(
-				Boolean(this.search_field.$input.val())
-			);
-		});
+		// this.search_field.$input.on('focus', () => {
+		// 	this.$clear_search_btn.toggle(
+		// 		Boolean(this.search_field.$input.val())
+		// 	);
+		// });
 	}
 
 	attach_shortcuts() {
@@ -629,7 +631,7 @@ posnext.PointOfSale.ItemSelector = class {
 				const items = this.search_index[search_term];
 				this.items = items;
 				this.render_item_list(items);
-				this.auto_add_item && this.items.length == 1 && this.add_filtered_item_to_cart();
+				this.auto_add_item && this.items.length == 1;
 				return;
 			}
 		}
@@ -642,8 +644,9 @@ posnext.PointOfSale.ItemSelector = class {
 					this.search_index[search_term] = items;
 				}
 				this.items = items;
+
 				this.render_item_list(items);
-				this.auto_add_item && this.items.length == 1 && this.add_filtered_item_to_cart();
+				this.auto_add_item && this.items.length == 1;
 			});
 	}
 
