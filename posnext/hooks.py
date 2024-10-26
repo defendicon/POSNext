@@ -240,6 +240,8 @@ override_whitelisted_methods = {
 # }
 override_doctype_class = {
 	"Sales Invoice": "posnext.overrides.sales_invoice.PosnextSalesInvoice",
+	"POS Closing Entry": "posnext.overrides.pos_closing_entry.PosnextPOSClosingEntry",
+	"POS Invoice Merge Log": "posnext.overrides.pos_invoice_merge_log.PosnextPOSInvoiceMergeLog",
 }
 
 
