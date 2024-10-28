@@ -19,9 +19,11 @@ class PosnextSalesInvoice(SalesInvoice):
 
     def validate_pos(self):
         if self.is_return:
+            for x in self.payments:
+                x.amount = x.amount * -1 if x.amount > 0 else x.amount
             invoice_total = self.rounded_total or self.grand_total
-
-            if flt(self.paid_amount if not self.is_pos else self.base_rounded_total) + flt(self.write_off_amount) - flt(invoice_total) > 1.0 / (
+            self.paid_amount = self.paid_amount if not self.is_pos else self.base_rounded_total
+            if flt(self.paid_amount) + flt(self.write_off_amount) - flt(invoice_total) > 1.0 / (
                         10.0 ** (self.precision("grand_total") + 1.0)
             ):
                 print(self.paid_amount if not self.is_pos else self.grand_total)
