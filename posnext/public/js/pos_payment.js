@@ -360,6 +360,7 @@ posnext.PointOfSale.Payment = class {
 	}
 
 	render_payment_mode_dom() {
+		console.log("HEEEEEEEEEEEEEEERE IN PAYMNETS")
 		const doc = this.events.get_frm().doc;
 		const payments = doc.payments;
 		const currency = doc.currency;
@@ -392,6 +393,8 @@ posnext.PointOfSale.Payment = class {
 					fieldtype: 'Currency',
 					placeholder: __('Enter {0} amount.', [p.mode_of_payment]),
 					onchange: function() {
+						console.log(p.doctype)
+						console.log(p.name)
 						const current_value = frappe.model.get_value(p.doctype, p.name, 'amount');
 						if (current_value != this.value) {
 							frappe.model
@@ -538,7 +541,7 @@ posnext.PointOfSale.Payment = class {
 
 	update_totals_section(doc) {
 		if (!doc) doc = this.events.get_frm().doc;
-		doc.paid_amount = doc.grand_total
+		// doc.paid_amount = doc.grand_total
 		const paid_amount = doc.paid_amount;
 		const grand_total = cint(frappe.sys_defaults.disable_rounded_total) ? doc.grand_total : doc.rounded_total;
 		const remaining = grand_total - doc.paid_amount;
