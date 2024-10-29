@@ -20,6 +20,7 @@ class PosnextSalesInvoice(SalesInvoice):
     def validate_pos(self):
         if self.is_return:
             self.paid_amount = self.paid_amount if not self.is_pos else self.base_rounded_total
+            self.outstanding_amount = 0
 
             for x in self.payments:
                 x.amount =  self.paid_amount
