@@ -340,6 +340,9 @@ posnext.PointOfSale.Controller = class {
 
 				form_updated: (item, field, value) => {
 					const item_row = frappe.model.get_doc(item.doctype, item.name);
+					if(field === 'qty' && this.frm.doc.is_return && value >=0){
+						frappe.throw("Qty must be negative for return document" )
+					}
 					if (item_row && item_row[field] != value) {
 						const args = {
 							field,
