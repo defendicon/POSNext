@@ -647,8 +647,6 @@ posnext.PointOfSale.Controller = class {
 
 				if (field === 'serial_no')
 					new_item['qty'] = value.split(`\n`).length || 0;
-				console.log("NEW ITEEEEEEEM")
-				console.log(new_item)
 				item_row = this.frm.add_child('items', new_item);
 
 				if (field === 'qty' && value !== 0 && !this.allow_negative_stock) {

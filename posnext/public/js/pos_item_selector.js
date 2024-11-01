@@ -21,6 +21,9 @@ posnext.PointOfSale.ItemSelector = class {
 			view = "Card"
 		}
 		this.custom_show_item_code = settings.custom_show_item_code
+		this.custom_show_last_incoming_rate = settings.custom_show_last_incoming_rate
+		this.custom_show_oem_part_number = settings.custom_show_oem_part_number
+		this.custom_show_posting_date = settings.custom_show_posting_date
 		this.show_only_list_view = settings.custom_show_only_list_view
 		this.show_only_card_view = settings.custom_show_only_card_view
 		this.inti_component();
@@ -46,8 +49,9 @@ posnext.PointOfSale.ItemSelector = class {
 						<div class="card-view"><a class="card-span">Card</a></div>
 						<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
 						<div class="search-field" style="grid-column: span 2 / span 2"></div>
-						<div class="item-code-search-field" style="grid-column: span 2 / span 2"></div>
-						<div class="item-group-field"></div>
+						<!--<div class="item-code-search-field" style="grid-column: span 2 / span 2"></div>-->
+						<div class="item-group-field" style="grid-column: span 2 / span 2"></div>
+						<div class="invoice-posting-date" style="grid-column: span 2 / span 2"></div>
 					</div>
 					<div class="items-container"></div>
 				</section>`
@@ -65,10 +69,11 @@ posnext.PointOfSale.ItemSelector = class {
 						<div class="card-view"><a class="card-span">Card</a></div>
 						<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
 						<div class="search-field" style="grid-column: span 2 / span 2"></div>
-						<div class="item-code-search-field" style="grid-column: span 2 / span 2"></div>
-						<div class="item-group-field"></div>
+						<!--<div class="item-code-search-field" style="grid-column: span 2 / span 2"></div>-->
+						<div class="item-group-field" style="grid-column: span 2 / span 2"></div>
+						<div class="invoice-posting-date" style="margin-left: 10px;grid-column: span 2 / span 2"></div>
 					</div>
-					<div class="cart-container"></div>
+					<div class="cart-container" ></div>
 				</section>`
 			);
 
@@ -166,21 +171,34 @@ posnext.PointOfSale.ItemSelector = class {
 					<div class="cart-header">
 					${get_item_code_header()}
 						<div style="flex: 1">${__('Rate')}</div>
-						<div style="flex: 1">${__('Available Qty')}</div>
+						<div style="flex: 1">${__('Avail. Qty')}</div>
 						<div class="qty-header">${__('UOM')}</div>
 					</div>
 					<div class="cart-items-section" style="overflow-y:hidden"></div>
 				</div>`)
 
 			function get_item_code_header() {
-
-				console.log(me.custom_show_item_code)
+				var flex_value = 3
+				var html_header = ``
 				if(me.custom_show_item_code){
-					return `<div style="flex: 2">${__('Item')}</div>
-						<div style="flex: 1">${__('Item Code')}</div>`
-				} else {
-					return `<div style="flex: 3">${__('Item')}</div>`
+					// flex_value -= 1
+					html_header += `<div style="flex: 1">${__('Item Code')}</div>`
 				}
+				if(me.custom_show_last_incoming_rate){
+					// flex_value -= 1
+					html_header += `<div style="flex: 1">${__('Inc.Rate')}</div>`
+				}
+				if(me.custom_show_oem_part_number){
+					// flex_value -= 1
+					html_header += `<div style="flex: 1">${__('OEM Part No.')}</div>`
+				}
+				if(flex_value > 0){
+					return `<div style="flex: ` + flex_value + `">${__('Item')}</div>` + html_header
+				} else {
+					return `<div>${__('Item')}</div>` + html_header
+				}
+
+
             }
 			this.make_cart_items_section();
 			items.forEach(item => {
@@ -244,11 +262,17 @@ posnext.PointOfSale.ItemSelector = class {
 		)
 
 		function get_item_name() {
-			if(me.custom_show_item_code){
-				return `<div class="item-name-desc" style="flex: 3">`
-			} else {
-				return `<div class="item-name-desc" style="flex: 4">`
-			}
+			var flex_value = 5
+            if(me.custom_show_item_code && me.custom_show_last_incoming_rate && me.custom_show_oem_part_number){
+				flex_value = 4.5
+            }
+            // if(me.custom_show_last_incoming_rate && me.custom_show_item_code){
+				// flex_value -= 1
+            // }
+            // if(me.custom_show_oem_part_number){
+				// flex_value -= 1
+            // }
+			return `<div class="item-name-desc" style="flex: ` + flex_value +`">`
         }
 		set_dynamic_rate_header_width();
 
@@ -269,15 +293,30 @@ posnext.PointOfSale.ItemSelector = class {
 			me.$cart_items_wrapper.find(".item-rate-amount").css("width", max_width);
 		}
 		function get_item_code() {
+			var html_code = ``
 			if(me.custom_show_item_code){
-				return `<div class="item-code-desc" style="flex: 1">
+				var item_code_flex_value = me.custom_show_last_incoming_rate ? 2 : 1
+				html_code += `<div class="item-code-desc" style="flex: ` + item_code_flex_value + `">
 					<div class="item-code" >
 						${item_data.item_code}
 					</div>
 				</div>`
-			} else {
-				return ``
 			}
+			if(me.custom_show_last_incoming_rate){
+				html_code += `<div class="incoming-rate-desc" style="flex: 1">
+					<div class="incoming-rate" >
+						${item_data.valuation_rate}
+					</div>
+				</div>`
+            }
+            if(me.custom_show_oem_part_number){
+				html_code += `<div class="incoming-rate-desc" style="flex: 1">
+					<div class="incoming-rate" >
+						11111111
+					</div>
+				</div>`
+            }
+            return html_code
         }
 		function get_rate_discount_html() {
 			if (item_data.rate && item_data.amount && item_data.rate !== item_data.amount) {
@@ -401,9 +440,10 @@ posnext.PointOfSale.ItemSelector = class {
 		const me = this;
 		const doc = me.events.get_frm().doc;
 		this.$component.find('.search-field').html('');
-		this.$component.find('.item-code-search-field').html('');
+		// this.$component.find('.item-code-search-field').html('');
 		this.$component.find('.pos-profile').html('');
 		this.$component.find('.item-group-field').html('');
+		this.$component.find('.invoice-posting-date').html('');
 		this.pos_profile_field = frappe.ui.form.make_control({
 			df: {
 				label: __('POS Profile'),
@@ -463,11 +503,32 @@ posnext.PointOfSale.ItemSelector = class {
 			parent: this.$component.find('.item-group-field'),
 			render_input: true,
 		});
+		if(me.custom_show_posting_date){
+			this.invoice_posting_date = frappe.ui.form.make_control({
+				df: {
+					label: __('Posting Date'),
+					fieldtype: 'Date',
+					onchange: function() {
+						me.events.get_frm().doc.posting_date= this.value;
+						console.log("DOOOOC")
+						console.log(me.events.get_frm().doc)
+					},
+
+				},
+				parent: this.$component.find('.invoice-posting-date'),
+				render_input: true,
+			});
+		}
+
 		this.pos_profile_field.set_value(me.pos_profile)
 		this.pos_profile_field.refresh()
 		this.pos_profile_field.toggle_label(false);
 		this.search_field.toggle_label(false);
 		this.item_group_field.toggle_label(false);
+		if(me.custom_show_posting_date) {
+            this.invoice_posting_date.toggle_label(false);
+            this.invoice_posting_date.set_value(frappe.datetime.get_today())
+        }
 
 		this.attach_clear_btn();
 	}

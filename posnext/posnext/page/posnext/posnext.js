@@ -10,6 +10,11 @@
 //     document.head.appendChild(script);
 // })();'console.log("POSNEXT POINTSALE")
 frappe.pages['posnext'].on_page_load = function(wrapper) {
+	 let fullwidth = JSON.parse(localStorage.container_fullwidth || 'false');
+	if(!fullwidth){
+		localStorage.container_fullwidth = true;
+		frappe.ui.toolbar.set_fullwidth_if_enabled();
+	}
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __('Point of Sales'),

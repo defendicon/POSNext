@@ -14,7 +14,7 @@ from erpnext.accounts.doctype.pos_profile.pos_profile import get_child_nodes, ge
 from erpnext.stock.utils import scan_barcode
 
 
-def search_by_term(search_term, warehouse, price_list):
+def search_by_term(search_term,custom_show_alternative_item_for_pos_search, warehouse, price_list):
 	result = search_for_serial_or_batch_or_barcode_number(search_term) or {}
 
 	item_code = ""
@@ -29,7 +29,6 @@ def search_by_term(search_term, warehouse, price_list):
 
 	if not item_doc:
 		return
-
 	item = {
 		"barcode": barcode,
 		"batch_no": batch_no,
@@ -90,35 +89,44 @@ def search_by_term(search_term, warehouse, price_list):
 			}
 		)
 
+
 	return {"items": [item]}
 
 
 @frappe.whitelist()
 def get_items(start, page_length, price_list, item_group, pos_profile, search_term=""):
-	warehouse, hide_unavailable_items = frappe.db.get_value(
-		"POS Profile", pos_profile, ["warehouse", "hide_unavailable_items"]
+	warehouse, hide_unavailable_items,custom_show_last_incoming_rate, custom_show_alternative_item_for_pos_search = frappe.db.get_value(
+		"POS Profile", pos_profile, ["warehouse", "hide_unavailable_items","custom_show_last_incoming_rate","custom_show_alternative_item_for_pos_search"]
 	)
 
 	result = []
 
 	if search_term:
-		result = search_by_term(search_term, warehouse, price_list) or []
+		result = search_by_term(search_term,custom_show_alternative_item_for_pos_search, warehouse, price_list) or []
 		if result:
 			return result
-
+	alt_items = []
+	if custom_show_alternative_item_for_pos_search:
+		alt_items = frappe.db.sql(""" SELECT * FROM `tabAlternative Items` WHERE parent=%s """,search_term,as_dict=1)
 	if not frappe.db.exists("Item Group", item_group):
 		item_group = get_root_of("Item Group")
 
-	condition = get_conditions(search_term)
+	condition = get_conditions(search_term,alt_items)
 	condition += get_item_group_condition(pos_profile)
 
 	lft, rgt = frappe.db.get_value("Item Group", item_group, ["lft", "rgt"])
 
-	bin_join_selection, bin_join_condition = "", ""
+	bin_join_selection, bin_join_condition,bin_valuation_rate = "", "",""
 	if hide_unavailable_items:
 		bin_join_selection = ", `tabBin` bin"
 		bin_join_condition = (
 			"AND bin.warehouse = %(warehouse)s AND bin.item_code = item.name AND bin.actual_qty > 0"
+		)
+	if custom_show_last_incoming_rate:
+		bin_join_selection = ", `tabBin` bin"
+		bin_valuation_rate = "bin.valuation_rate,"
+		bin_join_condition = (
+			"AND bin.warehouse = %(warehouse)s AND bin.item_code = item.name"
 		)
 
 	items_data = frappe.db.sql(
@@ -128,6 +136,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 			item.item_name,
 			item.description,
 			item.stock_uom,
+			{bin_valuation_rate}
 			item.image AS item_image,
 			item.is_stock_item
 		FROM
@@ -150,6 +159,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 			rgt=cint(rgt),
 			condition=condition,
 			bin_join_selection=bin_join_selection,
+			bin_valuation_rate=bin_valuation_rate,
 			bin_join_condition=bin_join_condition,
 		),
 		{"warehouse": warehouse},
@@ -202,11 +212,18 @@ def search_for_serial_or_batch_or_barcode_number(search_value: str) -> Dict[str,
 	return scan_barcode(search_value)
 
 
-def get_conditions(search_term):
+def get_conditions(search_term,new_items):
 	condition = "("
-	condition += """item.name like {search_term}
-		or item.item_name like {search_term}""".format(
+
+	condition += """(item.name like {search_term}
+		or item.item_name like {search_term}) """.format(
 		search_term=frappe.db.escape("%" + search_term + "%")
+	)
+	if len(new_items) > 0:
+		for xx in new_items:
+			condition += """or (item.name like {xx}
+		or item.item_name like {xx}) """.format(
+		xx=frappe.db.escape("%" + xx.item + "%")
 	)
 	condition += add_search_fields_condition(search_term)
 	condition += ")"
