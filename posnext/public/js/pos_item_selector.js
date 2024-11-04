@@ -312,7 +312,7 @@ posnext.PointOfSale.ItemSelector = class {
             if(me.custom_show_oem_part_number){
 				html_code += `<div class="incoming-rate-desc" style="flex: 1">
 					<div class="incoming-rate" >
-						11111111
+						${item_data.custom_oem_part_number || ""}
 					</div>
 				</div>`
             }
@@ -510,6 +510,7 @@ posnext.PointOfSale.ItemSelector = class {
 					fieldtype: 'Date',
 					onchange: function() {
 						me.events.get_frm().doc.posting_date= this.value;
+						me.events.get_frm().doc.set_posting_time= 1;
 						console.log("DOOOOC")
 						console.log(me.events.get_frm().doc)
 					},
@@ -528,6 +529,7 @@ posnext.PointOfSale.ItemSelector = class {
 		if(me.custom_show_posting_date) {
             this.invoice_posting_date.toggle_label(false);
             this.invoice_posting_date.set_value(frappe.datetime.get_today())
+
         }
 
 		this.attach_clear_btn();

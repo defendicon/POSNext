@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
 frappe.provide('posnext.PointOfSale');
 posnext.PointOfSale.Payment = class {
-	constructor({ events, wrapper }) {
+	constructor({ events, wrapper, settings }) {
 		this.wrapper = wrapper;
 		this.events = events;
-
+		this.custom_show_sales_man = settings.custom_show_sales_man
 		this.init_component();
 	}
 
@@ -43,10 +43,19 @@ posnext.PointOfSale.Payment = class {
 	}
 
 	make_invoice_fields_control() {
-		frappe.db.get_doc("POS Settings", undefined).then((doc) => {
-			const fields = doc.invoice_fields;
+		// frappe.db.get_doc("POS Settings", undefined).then((doc) => {
+			const fields = [];
+			if(this.custom_show_sales_man){
+				fields.push({
+					fieldname: "sales_person",
+					label: "Sales Man",
+					fieldtype: "Link",
+					options: "Sales Person",
+				})
+			}
 			if (!fields.length) return;
-
+			console.log("FIIIIELDS")
+			console.log(fields)
 			this.$invoice_fields = this.$invoice_fields_section.find('.invoice-fields');
 			this.$invoice_fields.html('');
 			const frm = this.events.get_frm();
@@ -57,7 +66,12 @@ posnext.PointOfSale.Payment = class {
 				);
 				let df_events = {
 					onchange: function() {
-						frm.set_value(this.df.fieldname, this.get_value());
+						// frm.set_value(this.df.fieldname, this.get_value());
+						frm.clear_table("sales_team")
+						cur_frm.add_child("sales_team", {
+							sales_person: this.get_value(),
+							allocated_percentage: 100,
+						})
 					}
 				};
 				if (df.fieldtype == "Button") {
@@ -80,7 +94,7 @@ posnext.PointOfSale.Payment = class {
 				});
 				this[`${df.fieldname}_field`].set_value(frm.doc[df.fieldname]);
 			});
-		});
+		// });
 	}
 
 	initialize_numpad() {

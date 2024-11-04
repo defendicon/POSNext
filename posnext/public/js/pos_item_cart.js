@@ -56,9 +56,10 @@ posnext.PointOfSale.ItemCart = class {
 				<div class="abs-cart-container">
 					<div class="cart-label">${__('Item Cart')}</div>
 					<div class="cart-header">
-						<div class="name-header">${__('Item')}</div>
-						<div class="qty-header">${__('Quantity')}</div>
-						<div class="rate-amount-header">${__('Amount')}</div>
+						<div class="name-header" style="flex:3">${__('Item')}</div>
+						<div class="qty-header" style="flex: 1">${__('Qty')}</div>
+						<div class="uom-header" style="flex: 1">${__('UOM')}</div>
+						<div class="rate-amount-header" style="flex: 1">${__('Amount')}</div>
 					</div>
 					<div class="cart-items-section"></div>
 					<div class="cart-totals-section"></div>
@@ -853,7 +854,7 @@ numpad_num.on('click', '.delete', function() {
 		$item_to_update.html(
 			`${get_item_image_html()}
 			<div class="item-name-desc">
-				<div class="item-name">
+				<div class="item-name" style="flex: 3">
 					${item_data.item_name}
 				</div>
 				${get_description_html()}
@@ -884,8 +885,9 @@ numpad_num.on('click', '.delete', function() {
 			if (item_data.rate && item_data.amount && item_data.rate !== item_data.amount) {
 				return `
 					<div class="item-qty-rate">
-						<div class="item-qty"><span>${item_data.qty || 0} ${item_data.uom}</span></div>
-						<div class="item-rate-amount">
+						<div class="item-qty" style="flex: 1"><span>${item_data.qty || 0}</span></div>
+						<div class="item-qty" style="flex: 1"><span> ${item_data.uom}</span></div>
+						<div class="item-rate-amount" style="flex: 1">
 							<div class="item-rate">${format_currency(item_data.amount, currency)}</div>
 							<div class="item-amount">${format_currency(item_data.rate, currency)}</div>
 						</div>
@@ -893,8 +895,9 @@ numpad_num.on('click', '.delete', function() {
 			} else {
 				return `
 					<div class="item-qty-rate">
-						<div class="item-qty"><span>${item_data.qty || 0} ${item_data.uom}</span></div>
-						<div class="item-rate-amount">
+						<div class="item-qty" style="flex: 1"><span>${item_data.qty || 0}</span></div>
+						<div class="item-qty" style="flex: 1"><span> ${item_data.uom}</span></div>
+						<div class="item-rate-amount" style="flex: 1">
 							<div class="item-rate">${format_currency(item_data.rate, currency)}</div>
 						</div>
 					</div>`

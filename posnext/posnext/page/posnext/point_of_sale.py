@@ -107,7 +107,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 			return result
 	alt_items = []
 	if custom_show_alternative_item_for_pos_search:
-		alt_items = frappe.db.sql(""" SELECT * FROM `tabAlternative Items` WHERE parent=%s """,search_term,as_dict=1)
+		alt_items = frappe.db.sql(""" SELECT * FROM `tabAlternative Items` WHERE parent like %s or parent_item_name like %s""",('%' + search_term + '%','%' + search_term + '%'),as_dict=1)
 	if not frappe.db.exists("Item Group", item_group):
 		item_group = get_root_of("Item Group")
 
@@ -123,9 +123,10 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 			"AND bin.warehouse = %(warehouse)s AND bin.item_code = item.name AND bin.actual_qty > 0"
 		)
 	if custom_show_last_incoming_rate:
-		bin_join_selection = ", `tabBin` bin"
+		if not bin_join_selection:
+			bin_join_selection = ", `tabBin` bin"
 		bin_valuation_rate = "bin.valuation_rate,"
-		bin_join_condition = (
+		bin_join_condition_valuation = (
 			"AND bin.warehouse = %(warehouse)s AND bin.item_code = item.name"
 		)
 
@@ -133,6 +134,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 		"""
 		SELECT
 			item.name AS item_code,
+			item.custom_oem_part_number,
 			item.item_name,
 			item.description,
 			item.stock_uom,
@@ -149,6 +151,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 			AND item.item_group in (SELECT name FROM `tabItem Group` WHERE lft >= {lft} AND rgt <= {rgt})
 			AND {condition}
 			{bin_join_condition}
+			{bin_join_condition_valuation}
 		ORDER BY
 			item.name asc
 		LIMIT
@@ -161,6 +164,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 			bin_join_selection=bin_join_selection,
 			bin_valuation_rate=bin_valuation_rate,
 			bin_join_condition=bin_join_condition,
+			bin_join_condition_valuation=bin_join_condition_valuation,
 		),
 		{"warehouse": warehouse},
 		as_dict=1,

@@ -134,11 +134,11 @@ doctype_js = {"POS Profile" : "public/js/pos_profile.js"}
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"Sales Invoice": {
-# 		"validate": "posnext.doc_events.sales_invoice.validate_si"
-# 	}
-# }
+doc_events = {
+	"Item": {
+		"validate": "posnext.doc_events.item.validate_item"
+	}
+}
 
 # Scheduled Tasks
 # ---------------
@@ -170,7 +170,8 @@ doctype_js = {"POS Profile" : "public/js/pos_profile.js"}
 # ------------------------------
 #
 override_whitelisted_methods = {
-	"erpnext.accounts.doctype.pos_closing_entry.pos_closing_entry.get_pos_invoices": "posnext.overrides.pos_closing_entry.get_pos_invoices"
+	"erpnext.accounts.doctype.pos_closing_entry.pos_closing_entry.get_pos_invoices": "posnext.overrides.pos_closing_entry.get_pos_invoices",
+	"erpnext.accounts.doctype.pos_invoice.pos_invoice.get_stock_availability": "posnext.overrides.pos_invoice.get_stock_availability"
 }
 #
 # each overriding function accepts a `data` argument;

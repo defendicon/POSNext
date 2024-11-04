@@ -402,6 +402,7 @@ posnext.PointOfSale.Controller = class {
 	init_payments() {
 		this.payment = new posnext.PointOfSale.Payment({
 			wrapper: this.$components_wrapper,
+			settings: this.settings,
 			events: {
 				get_frm: () => this.frm || {},
 
@@ -689,17 +690,11 @@ item_row['rate'] = rate
 		if (name) {
 			item_row = this.frm.doc.items.find(i => i.name == name);
 		} else {
-			console.log("ELSSSSE")
 			// if item is clicked twice from item selector
 			// then "item_code, batch_no, uom, rate" will help in getting the exact item
 			// to increase the qty by one
 			const has_batch_no = (batch_no !== 'null' && batch_no !== null);
 			const batch_no_check = this.settings.custom_allow_add_new_items_on_new_line ? (has_batch_no && i.batch_no === batch_no) : true
-			console.log(batch_no_check)
-			console.log(uom)
-			console.log(flt(rate))
-			console.log(item_code)
-			console.log(this.frm.doc.items)
 			item_row = this.frm.doc.items.find(
 				i => i.item_code === item_code
 					&& batch_no_check
