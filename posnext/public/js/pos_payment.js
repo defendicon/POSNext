@@ -5,6 +5,8 @@ posnext.PointOfSale.Payment = class {
 		this.wrapper = wrapper;
 		this.events = events;
 		this.custom_show_sales_man = settings.custom_show_sales_man
+		this.custom_show_additional_note = settings.custom_show_additional_note
+		// this.custom_show_credit_sales = settings.custom_show_credit_sales
 		this.init_component();
 	}
 
@@ -44,7 +46,20 @@ posnext.PointOfSale.Payment = class {
 
 	make_invoice_fields_control() {
 		// frappe.db.get_doc("POS Settings", undefined).then((doc) => {
+			var me = this
 			const fields = [];
+			// if(this.custom_show_credit_sales){
+			// 	fields.push({
+			// 		fieldname: "custom_credit_sales",
+			// 		label: "Credit Sales",
+			// 		fieldtype: "Check",
+			// 	})
+			// 	fields.push({
+			// 		fieldname: "custom_credit_sales_date",
+			// 		label: "Credit Sales Date",
+			// 		fieldtype: "Date"
+			// 	})
+			// }
 			if(this.custom_show_sales_man){
 				fields.push({
 					fieldname: "sales_person",
@@ -53,9 +68,15 @@ posnext.PointOfSale.Payment = class {
 					options: "Sales Person",
 				})
 			}
+			if(this.custom_show_additional_note){
+				fields.push({
+					fieldname: "remarks",
+					label: "Additional Note",
+					fieldtype: "Small Text",
+				})
+			}
+
 			if (!fields.length) return;
-			console.log("FIIIIELDS")
-			console.log(fields)
 			this.$invoice_fields = this.$invoice_fields_section.find('.invoice-fields');
 			this.$invoice_fields.html('');
 			const frm = this.events.get_frm();
@@ -66,12 +87,21 @@ posnext.PointOfSale.Payment = class {
 				);
 				let df_events = {
 					onchange: function() {
-						// frm.set_value(this.df.fieldname, this.get_value());
-						frm.clear_table("sales_team")
-						cur_frm.add_child("sales_team", {
-							sales_person: this.get_value(),
-							allocated_percentage: 100,
-						})
+						if(this.df.fieldname === 'sales_person'){
+							frm.clear_table("sales_team")
+							cur_frm.add_child("sales_team", {
+								sales_person: this.get_value(),
+								allocated_percentage: 100,
+							})
+						} else {
+							frm.set_value(this.df.fieldname, this.get_value());
+						}
+		// 				if(this.df.fieldname === 'custom_credit_sales' && this.get_value()){
+		// 					console.log("SELECTEEED MODE")
+		// console.log(me.$payment_modes)
+		// 					this.selected_mode.set_value(0);
+		// 				}
+
 					}
 				};
 				if (df.fieldtype == "Button") {
@@ -92,7 +122,12 @@ posnext.PointOfSale.Payment = class {
 					parent: this.$invoice_fields.find(`.${df.fieldname}-field`),
 					render_input: true,
 				});
-				this[`${df.fieldname}_field`].set_value(frm.doc[df.fieldname]);
+				if(df.fieldname !== 'remarks'){
+					this[`${df.fieldname}_field`].set_value(frm.doc[df.fieldname]);
+				}
+				// if(df.fieldname === 'custom_credit_sales_date'){
+				// 	this[`${df.fieldname}_field`].set_value(frappe.datetime.get_today());
+				// }
 			});
 		// });
 	}

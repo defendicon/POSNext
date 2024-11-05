@@ -107,7 +107,8 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 			return result
 	alt_items = []
 	if custom_show_alternative_item_for_pos_search:
-		alt_items = frappe.db.sql(""" SELECT * FROM `tabAlternative Items` WHERE parent like %s or parent_item_name like %s""",('%' + search_term + '%','%' + search_term + '%'),as_dict=1)
+		alt_items = frappe.db.sql(""" SELECT * FROM `tabAlternative Items` 
+ 									WHERE parent like %s or parent_item_name like %s or parent_item_description like %s or parent_oem_part_number like %s""",('%' + search_term + '%','%' + search_term + '%','%' + search_term + '%','%' + search_term + '%'),as_dict=1)
 	if not frappe.db.exists("Item Group", item_group):
 		item_group = get_root_of("Item Group")
 
@@ -220,7 +221,7 @@ def get_conditions(search_term,new_items):
 	condition = "("
 
 	condition += """(item.name like {search_term}
-		or item.item_name like {search_term}) """.format(
+		or item.item_name like {search_term} or item.description like {search_term} or item.custom_oem_part_number like {search_term}) """.format(
 		search_term=frappe.db.escape("%" + search_term + "%")
 	)
 	if len(new_items) > 0:

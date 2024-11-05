@@ -1149,6 +1149,7 @@ numpad_num.on('click', '.delete', function() {
 			});
 			this.$customer_section.find('.customer-details').html(
 				`<div class="header">
+
 					<div class="label">Contact Details</div>
 					<div class="close-details-btn">
 						<svg width="32" height="32" viewBox="0 0 14 14" fill="none">

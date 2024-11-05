@@ -24,6 +24,7 @@ posnext.PointOfSale.ItemSelector = class {
 		this.custom_show_last_incoming_rate = settings.custom_show_last_incoming_rate
 		this.custom_show_oem_part_number = settings.custom_show_oem_part_number
 		this.custom_show_posting_date = settings.custom_show_posting_date
+		this.custom_show_logical_rack = settings.custom_show_logical_rack
 		this.show_only_list_view = settings.custom_show_only_list_view
 		this.show_only_card_view = settings.custom_show_only_card_view
 		this.inti_component();
@@ -192,6 +193,10 @@ posnext.PointOfSale.ItemSelector = class {
 					// flex_value -= 1
 					html_header += `<div style="flex: 1">${__('OEM Part No.')}</div>`
 				}
+				if(me.custom_show_logical_rack){
+					// flex_value -= 1
+					html_header += `<div style="flex: 1">${__('Rack')}</div>`
+				}
 				if(flex_value > 0){
 					return `<div style="flex: ` + flex_value + `">${__('Item')}</div>` + html_header
 				} else {
@@ -310,6 +315,13 @@ posnext.PointOfSale.ItemSelector = class {
 				</div>`
             }
             if(me.custom_show_oem_part_number){
+				html_code += `<div class="incoming-rate-desc" style="flex: 1">
+					<div class="incoming-rate" >
+						${item_data.custom_oem_part_number || ""}
+					</div>
+				</div>`
+            }
+            if(me.custom_show_logical_rack){
 				html_code += `<div class="incoming-rate-desc" style="flex: 1">
 					<div class="incoming-rate" >
 						${item_data.custom_oem_part_number || ""}
@@ -444,32 +456,42 @@ posnext.PointOfSale.ItemSelector = class {
 		this.$component.find('.pos-profile').html('');
 		this.$component.find('.item-group-field').html('');
 		this.$component.find('.invoice-posting-date').html('');
-		this.pos_profile_field = frappe.ui.form.make_control({
-			df: {
-				label: __('POS Profile'),
-				fieldtype: 'Link',
-				options: 'POS Profile',
-				placeholder: __('POS Profile'),
-                onchange: function () {
+		frappe.db.get_single_value("POS Settings","custom_profile_lock").then(doc => {
+			console.log("DOOOOOC")
+			console.log(doc)
+this.pos_profile_field = frappe.ui.form.make_control({
+					df: {
+						label: __('POS Profile'),
+						fieldtype: 'Link',
+						options: 'POS Profile',
+						placeholder: __('POS Profile'),
+						read_only: doc,
+						onchange: function () {
 
-					if(me.reload_status && me.pos_profile !== this.value){
-						frappe.pages['posnext'].refresh(window.wrapper,window.onScan,this.value)
-					}
+							if(me.reload_status && me.pos_profile !== this.value){
+								frappe.pages['posnext'].refresh(window.wrapper,window.onScan,this.value)
+							}
 
-					// console.log("ON ON CHANGE")
-					// console.log(this.pos_profile_field)
-					// var value = this.pos_profile_field.get_value()
-					// if(value !== me.pos_profile){
-					// 	this.events.check_opening_entry()
-					// }
-					// window.wrapper.please_refresh = true
-					// frappe.pages['posnext'].refresh_data(window.wrapper)
-					// console.log("HEEEERE")
-                }
-			},
-			parent: this.$component.find('.pos-profile'),
-			render_input: false,
-		});
+							// console.log("ON ON CHANGE")
+							// console.log(this.pos_profile_field)
+							// var value = this.pos_profile_field.get_value()
+							// if(value !== me.pos_profile){
+							// 	this.events.check_opening_entry()
+							// }
+							// window.wrapper.please_refresh = true
+							// frappe.pages['posnext'].refresh_data(window.wrapper)
+							// console.log("HEEEERE")
+						}
+					},
+					parent: this.$component.find('.pos-profile'),
+					render_input: false,
+				});
+			this.pos_profile_field.set_value(me.pos_profile)
+		this.pos_profile_field.refresh()
+		this.pos_profile_field.toggle_label(false);
+
+		})
+
 		this.search_field = frappe.ui.form.make_control({
 			df: {
 				label: __('Search'),
@@ -521,9 +543,7 @@ posnext.PointOfSale.ItemSelector = class {
 			});
 		}
 
-		this.pos_profile_field.set_value(me.pos_profile)
-		this.pos_profile_field.refresh()
-		this.pos_profile_field.toggle_label(false);
+
 		this.search_field.toggle_label(false);
 		this.item_group_field.toggle_label(false);
 		if(me.custom_show_posting_date) {
