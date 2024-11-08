@@ -12,6 +12,8 @@ posnext.PointOfSale.ItemCart = class {
 		this.show_order_list_button = settings.custom_show_order_list_button;
 		this.mobile_number_based_customer = settings.custom_mobile_number_based_customer;
 		this.show_checkout_button = settings.custom_show_checkout_button;
+		this.custom_edit_rate = settings.custom_edit_rate_and_uom;
+		// this.custom_edit_uom = settings.custom_edit_uom;
 		this.settings = settings;
 		this.init_component();
 	}
@@ -24,9 +26,16 @@ posnext.PointOfSale.ItemCart = class {
 	}
 
 	prepare_dom() {
-		this.wrapper.append(
-			`<section class="customer-cart-container customer-cart-container1 " id="customer-cart-container2"></section>`
-		)
+		if(this.custom_edit_rate){
+		    this.wrapper.append(
+			    `<section class="customer-cart-container customer-cart-container1 " style="grid-column: span 5 / span 5;" id="customer-cart-container2"></section>`
+		    )
+		} else {
+			this.wrapper.append(
+			    `<section class="customer-cart-container customer-cart-container1 " id="customer-cart-container2"></section>`
+		    )
+		}
+
 		this.$component = this.wrapper.find('.customer-cart-container1');
 	}
 
@@ -56,12 +65,12 @@ posnext.PointOfSale.ItemCart = class {
 				<div class="abs-cart-container">
 					<div class="cart-label">${__('Item Cart')}</div>
 					<div class="cart-header">
-						<div class="name-header" style="flex:3">${__('Item')}</div>
+						<div class="name-header" style="flex:2">${__('Item')}</div>
 						<div class="qty-header" style="flex: 1">${__('Qty')}</div>
 						<div class="uom-header" style="flex: 1">${__('UOM')}</div>
-						<div class="rate-amount-header" style="flex: 1">${__('Amount')}</div>
+						<div class="rate-amount-header" style="flex: 1;text-align: left">${__('Amount')}</div>
 					</div>
-					<div class="cart-items-section"></div>
+					<div class="cart-items-section" ></div>
 					<div class="cart-totals-section"></div>
 					<div class="numpad-section"></div>
 				</div>
@@ -208,23 +217,26 @@ this.highlight_checkout_btn(true);
 			const show = me.$cart_container.is(':visible');
 			me.toggle_customer_info(show);
 		});
+        //
+		if(!me.custom_edit_rate){
+			this.$cart_items_wrapper.on('click', '.cart-item-wrapper', function() {
+                const $cart_item = $(this);
 
-		this.$cart_items_wrapper.on('click', '.cart-item-wrapper', function() {
-			const $cart_item = $(this);
+                me.toggle_item_highlight(this);
 
-			me.toggle_item_highlight(this);
+                const payment_section_hidden = !me.$totals_section.find('.edit-cart-btn').is(':visible');
+                if (!payment_section_hidden) {
+                    // payment section is visible
+                    // edit cart first and then open item details section
+                    me.$totals_section.find(".edit-cart-btn").click();
+                }
 
-			const payment_section_hidden = !me.$totals_section.find('.edit-cart-btn').is(':visible');
-			if (!payment_section_hidden) {
-				// payment section is visible
-				// edit cart first and then open item details section
-				me.$totals_section.find(".edit-cart-btn").click();
-			}
+                const item_row_name = unescape($cart_item.attr('data-row-name'));
+                me.events.cart_item_clicked({ name: item_row_name });
+                this.numpad_value = '';
+            });
+		}
 
-			const item_row_name = unescape($cart_item.attr('data-row-name'));
-			me.events.cart_item_clicked({ name: item_row_name });
-			this.numpad_value = '';
-		});
 
 		this.$component.on('click', '.checkout-btn', async function() {
 			if ($(this).attr('style').indexOf('--blue-500') == -1) return;
@@ -457,7 +469,7 @@ this.highlight_checkout_btn(true);
 				numpad_num.on('click', '.clear', function() {
 						d.set_value('mobile_number', "");
 					})
-numpad_num.on('click', '.delete', function() {
+					numpad_num.on('click', '.delete', function() {
 					var current_value = d.get_value("mobile_number")
 						d.set_value('mobile_number', current_value.slice(0, -1));
 					})
@@ -853,14 +865,80 @@ numpad_num.on('click', '.delete', function() {
 
 		$item_to_update.html(
 			`${get_item_image_html()}
-			<div class="item-name-desc">
-				<div class="item-name" style="flex: 3">
+			<div class="item-name-desc" style="flex: 2">
+				<div class="item-name" >
 					${item_data.item_name}
 				</div>
 				${get_description_html()}
 			</div>
 			${get_rate_discount_html()}`
 		)
+		if(me.custom_edit_rate){
+		    this[item_data.item_code + "_qty"] = frappe.ui.form.make_control({
+				df: {
+					fieldname: "qty",
+					fieldtype: "Int",
+					onchange: function() {
+						console.log("ON CHANGE QTYYYY")
+						console.log(item_data)
+						// me.events.cart_item_clicked({ name: item_data.name });
+						me.events.form_updated(item_data, "qty", this.value);
+					},
+				},
+				parent: $item_to_update.find(`.item-qty`),
+				render_input: true,
+			});
+            var uoms = []
+                frappe.db.get_doc("Item",item_data.item_code).then(doc => {
+                    uoms = doc.uoms.map(item => item.uom);
+                })
+            this[item_data.item_code + "_uom"] = frappe.ui.form.make_control({
+                    df: {
+                        fieldname: "uom",
+                        fieldtype: "Link",
+                        options: "UOM",
+                        get_query:function () {
+                                return {
+                                    filters: {
+                                        name: ['in',uoms]
+                                    }
+                                }
+                        },
+                        onchange: function() {
+                            me.events.form_updated(item_data, "uom", this.value);
+                        },
+                    },
+                    parent: $item_to_update.find(`.item-uom`),
+                    render_input: true,
+                });
+            this[item_data.item_code + "_amount"] = frappe.ui.form.make_control({
+                    df: {
+                        fieldname: "amount",
+                        fieldtype: "Currency",
+                        read_only: 1
+                    },
+                    parent: $item_to_update.find(`.item-rate-amount`),
+                    render_input: true,
+                });
+            var delete_button = `<svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ff0000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M10 11V17" stroke="#ff0000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M14 11V17" stroke="#ff0000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M4 7H20" stroke="#ff0000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M6 7H12H18V18C18 19.6569 16.6569 21 15 21H9C7.34315 21 6 19.6569 6 18V7Z" stroke="#ff0000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5V7H9V5Z" stroke="#ff0000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>`
+            var remove_button = frappe.ui.form.make_control({
+                    df: {
+                        fieldname: "remove",
+                        fieldtype: "Button",
+						label: delete_button,
+
+                    },
+                    parent: $item_to_update.find(`.remove-button`),
+                    render_input: true,
+                });
+            remove_button.refresh(); // Make sure button is rendered
+			$(remove_button.$input).on("click", function() {
+				me.events.remove_item_from_cart(item_data);
+			});
+            this[item_data.item_code + "_qty"].set_value(item_data.qty)
+            this[item_data.item_code + "_uom"].set_value(item_data.uom)
+            this[item_data.item_code + "_amount"].set_value(item_data.amount)
+		}
 
 		set_dynamic_rate_header_width();
 
@@ -882,26 +960,52 @@ numpad_num.on('click', '.delete', function() {
 		}
 
 		function get_rate_discount_html() {
-			if (item_data.rate && item_data.amount && item_data.rate !== item_data.amount) {
-				return `
-					<div class="item-qty-rate">
-						<div class="item-qty" style="flex: 1"><span>${item_data.qty || 0}</span></div>
-						<div class="item-qty" style="flex: 1"><span> ${item_data.uom}</span></div>
-						<div class="item-rate-amount" style="flex: 1">
-							<div class="item-rate">${format_currency(item_data.amount, currency)}</div>
-							<div class="item-amount">${format_currency(item_data.rate, currency)}</div>
-						</div>
-					</div>`
+			if(me.custom_edit_rate){
+				if (item_data.rate && item_data.amount && item_data.rate !== item_data.amount) {
+                    return `
+                        <div class="item-qty-rate" style="flex: 3">
+                            <div class="item-qty" style="flex: 1">
+                            </div>
+                            <div class="item-uom" style="flex: 1;text-align: left"></div>
+                            <div class="item-rate-amount" style="flex: 2"></div>
+                            <div class="remove-button" style="flex: 1;margin-top:15px;display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center;"></div>
+                        </div>`
+                } else {
+                    return `
+                        <div class="item-qty-rate" style="flex: 3">
+                            <div class="item-qty" style="flex: 1"></div>
+                            <div class="item-uom" style="flex: 1;text-align: left"></div>
+                            <div class="item-rate-amount" style="flex: 2"></div>
+                            <div class="remove-button" style="flex: 1;margin-top:15px;display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center;"></div>
+                        </div>`
+                }
 			} else {
-				return `
-					<div class="item-qty-rate">
-						<div class="item-qty" style="flex: 1"><span>${item_data.qty || 0}</span></div>
-						<div class="item-qty" style="flex: 1"><span> ${item_data.uom}</span></div>
-						<div class="item-rate-amount" style="flex: 1">
-							<div class="item-rate">${format_currency(item_data.rate, currency)}</div>
-						</div>
-					</div>`
+				if (item_data.rate && item_data.amount && item_data.rate !== item_data.amount) {
+                    return `
+                        <div class="item-qty-rate">
+                            <div class="item-qty"><span>${item_data.qty || 0}</span></div>
+                            <div class="item-qty"><span> ${item_data.uom}</span></div>
+                            <div class="item-rate-amount">
+                                <div class="item-rate">${format_currency(item_data.amount, currency)}</div>
+                                <div class="item-amount">${format_currency(item_data.rate, currency)}</div>
+                            </div>
+                        </div>`
+                } else {
+                    return `
+                        <div class="item-qty-rate">
+                            <div class="item-qty" ><span>${item_data.qty || 0}</span></div>
+                            <div class="item-qty" ><span> ${item_data.uom}</span></div>
+                            <div class="item-rate-amount" >
+                                <div class="item-rate">${format_currency(item_data.rate, currency)}</div>
+                            </div>
+                        </div>`
+                }
 			}
+
 		}
 
 		function get_description_html() {

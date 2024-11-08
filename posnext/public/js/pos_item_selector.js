@@ -27,6 +27,8 @@ posnext.PointOfSale.ItemSelector = class {
 		this.custom_show_logical_rack = settings.custom_show_logical_rack
 		this.show_only_list_view = settings.custom_show_only_list_view
 		this.show_only_card_view = settings.custom_show_only_card_view
+		this.custom_edit_rate = settings.custom_edit_rate_and_uom
+		// this.custom_edit_uom = settings.custom_edit_uom
 		this.inti_component();
 	}
 
@@ -61,10 +63,12 @@ posnext.PointOfSale.ItemSelector = class {
 			this.$component = this.wrapper.find('.items-selector');
 			this.$items_container = this.$component.find('.items-container');
 		} else if(view === "List" && !this.show_only_card_view) {
-
+            var section = `<section class="customer-cart-container items-selector" id="list-view-section" style="grid-column: span 6 / span 6;overflow-y:hidden">`
+			if(this.custom_edit_rate){
+			    section = `<section class="customer-cart-container items-selector" id="list-view-section" style="grid-column: span 5 / span 5;overflow-y:hidden">`
+			}
 			this.wrapper.append(
-				`<section class="customer-cart-container items-selector" id="list-view-section" style="grid-column: span 6 / span 6;overflow-y:hidden">
-					<div class="filter-section">
+				section + `<div class="filter-section">
 						<div class="label" style="grid-column: span 1 / span 1">${__('All Items')}</div>
 						<div class="list-view"><a class="list-span">List</a></div>
 						<div class="card-view"><a class="card-span">Card</a></div>
@@ -173,13 +177,16 @@ posnext.PointOfSale.ItemSelector = class {
 					${get_item_code_header()}
 						<div style="flex: 1">${__('Rate')}</div>
 						<div style="flex: 1">${__('Avail. Qty')}</div>
-						<div class="qty-header">${__('UOM')}</div>
+						<!--<div class="qty-header">${__('UOM')}</div>-->
 					</div>
-					<div class="cart-items-section" style="overflow-y:hidden"></div>
+					<div class="cart-items-section" style="overflow-y:hidden;font-size: 12px"></div>
 				</div>`)
 
 			function get_item_code_header() {
 				var flex_value = 3
+				 if(!me.custom_show_item_code && !me.custom_show_last_incoming_rate && !me.custom_show_oem_part_number && !me.custom_show_logical_rack){
+					flex_value = 2
+				}
 				var html_header = ``
 				if(me.custom_show_item_code){
 					// flex_value -= 1
@@ -191,7 +198,7 @@ posnext.PointOfSale.ItemSelector = class {
 				}
 				if(me.custom_show_oem_part_number){
 					// flex_value -= 1
-					html_header += `<div style="flex: 1">${__('OEM Part No.')}</div>`
+					html_header += `<div style="flex: 1">${__('OEM')} <br> ${__('Part No.')}</div>`
 				}
 				if(me.custom_show_logical_rack){
 					// flex_value -= 1
@@ -267,9 +274,12 @@ posnext.PointOfSale.ItemSelector = class {
 		)
 
 		function get_item_name() {
-			var flex_value = 5
+			var flex_value = 4
             if(me.custom_show_item_code && me.custom_show_last_incoming_rate && me.custom_show_oem_part_number){
-				flex_value = 4.5
+				flex_value = 3.5
+            }
+            if(!me.custom_show_item_code && !me.custom_show_last_incoming_rate && !me.custom_show_oem_part_number && !me.custom_show_logical_rack){
+				flex_value = 2
             }
             // if(me.custom_show_last_incoming_rate && me.custom_show_item_code){
 				// flex_value -= 1
@@ -300,29 +310,30 @@ posnext.PointOfSale.ItemSelector = class {
 		function get_item_code() {
 			var html_code = ``
 			if(me.custom_show_item_code){
-				var item_code_flex_value = me.custom_show_last_incoming_rate ? 2 : 1
-				html_code += `<div class="item-code-desc" style="flex: ` + item_code_flex_value + `">
+				var item_code_flex_value =  1
+				html_code += `<div class="item-code-desc" style="flex: ` + item_code_flex_value + `;text-align: left">
 					<div class="item-code" >
-						${item_data.item_code}
+						<b>${item_data.item_code}</b> <br>
+						${item_data.uom}
 					</div>
 				</div>`
 			}
 			if(me.custom_show_last_incoming_rate){
-				html_code += `<div class="incoming-rate-desc" style="flex: 1">
+				html_code += `<div class="incoming-rate-desc" style="flex: 1;text-align: left">
 					<div class="incoming-rate" >
 						${item_data.valuation_rate}
 					</div>
 				</div>`
             }
             if(me.custom_show_oem_part_number){
-				html_code += `<div class="incoming-rate-desc" style="flex: 1">
+				html_code += `<div class="incoming-rate-desc" style="flex: 1;text-align: left">
 					<div class="incoming-rate" >
 						${item_data.custom_oem_part_number || ""}
 					</div>
 				</div>`
             }
             if(me.custom_show_logical_rack){
-				html_code += `<div class="incoming-rate-desc" style="flex: 1">
+				html_code += `<div class="incoming-rate-desc" style="flex: 1;text-align: left">
 					<div class="incoming-rate" >
 						${item_data.custom_oem_part_number || ""}
 					</div>
@@ -333,22 +344,20 @@ posnext.PointOfSale.ItemSelector = class {
 		function get_rate_discount_html() {
 			if (item_data.rate && item_data.amount && item_data.rate !== item_data.amount) {
 				return `
-					<div class="item-qty-rate" style="flex: 5">
+					<div class="item-qty-rate" style="flex: 3">
 						<div class="item-rate-amount" style="flex: 1">
-							<div class="item-rate" style="text-align: center">${format_currency(item_data.price_list_rate, currency)}</div>
+							<div class="item-rate" style="text-align: left">${format_currency(item_data.price_list_rate, currency)}</div>
 						</div>
 						<div class="item-qty" style="flex: 1;display:block;text-align: center"><span> ${item_data.actual_qty || 0}</span></div>
-						<div class="item-qty" style="margin: 0"><span> ${item_data.uom}</span></div>
 						
 					</div>`
 			} else {
 				return `
-					<div class="item-qty-rate" style="flex: 5">
+					<div class="item-qty-rate" style="flex: 3">
 						<div class="item-rate-amount" style="flex: 1">
-							<div class="item-rate" style="text-align: center">${format_currency(item_data.price_list_rate, currency)}</div>
+							<div class="item-rate" style="text-align: left">${format_currency(item_data.price_list_rate, currency)}</div>
 						</div>
 						<div class="item-qty" style="flex: 1;display:block;text-align: center"><span> ${item_data.actual_qty || 0}</span></div>
-						<div class="item-qty" style="margin: 0"><span> ${item_data.uom}</span></div>
 						
 					</div>`
 			}

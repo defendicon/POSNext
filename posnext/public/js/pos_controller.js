@@ -3,7 +3,6 @@ var selected_item = null
 
 posnext.PointOfSale.Controller = class {
 	constructor(wrapper) {
-		console.log("CONTROLLLER HERE ssssssadasdasd")
 		this.wrapper = $(wrapper).find('.layout-main-section');
 		this.page = wrapper.page;
 		frappe.run_serially([
@@ -297,7 +296,37 @@ posnext.PointOfSale.Controller = class {
 			settings: this.settings,
 			events: {
 				get_frm: () => this.frm,
+				remove_item_from_cart: (item) => {
+					console.log("ITEEEM DETAILS")
+					console.log(this.item_details)
+					this.item_details.current_item = item
+					this.item_details.name = item.name
+					this.item_details.doctype= item.doctype
+					frappe.confirm('Are you sure you want to remove this item from the cart?',
+						() => {
+							this.remove_item_from_cart()
+						}, () => {})
 
+
+
+				},
+				form_updated: (item, field, value) => {
+					this.item_details.current_item = item
+					const item_row = frappe.model.get_doc(item.doctype, item.name);
+					if(field === 'qty' && this.frm.doc.is_return && value >=0){
+						frappe.throw("Qty must be negative for return document" )
+					}
+					if (item_row && item_row[field] != value) {
+						const args = {
+							field,
+							value,
+							item: item
+						};
+						return this.on_cart_update(args);
+					}
+
+					return Promise.resolve();
+				},
 				cart_item_clicked: (item) => {
 
 					const item_row = this.get_item_from_frm(item);
@@ -383,7 +412,10 @@ posnext.PointOfSale.Controller = class {
 						});
 					})
 				},
-				remove_item_from_cart: () => this.remove_item_from_cart(),
+				remove_item_from_cart: () => {
+					console.log("ITEEEM DETAILS")
+					console.log(this.item_details)
+					this.remove_item_from_cart()},
 				get_item_stock_map: () => this.item_stock_map,
 				close_item_details: () => {
 					selected_item = null
@@ -615,6 +647,7 @@ posnext.PointOfSale.Controller = class {
 				value = flt(item_row.stock_qty) + flt(value);
 
 			if (item_row_exists) {
+				console.log("EXIIIISTS")
 				if (field === 'qty')
 					value = flt(value);
 
@@ -815,7 +848,10 @@ item_row['rate'] = rate
 	remove_item_from_cart() {
 		frappe.dom.freeze();
 		const { doctype, name, current_item } = this.item_details;
-
+		console.log("REMOVE ITEM")
+		console.log(doctype)
+		console.log(name)
+		console.log(current_item)
 		return frappe.model.set_value(doctype, name, 'qty', 0)
 			.then(() => {
 				frappe.model.clear_doc(doctype, name);
@@ -828,6 +864,8 @@ item_row['rate'] = rate
 
 	async save_and_checkout() {
 		if (this.frm.is_dirty()) {
+			const div = document.getElementById("customer-cart-container2");
+			div.style.gridColumn = "";
 			let save_error = false;
 			await this.frm.save(null, null, null, () => save_error = true);
 			// only move to payment section if save is successful

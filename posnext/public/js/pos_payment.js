@@ -6,6 +6,7 @@ posnext.PointOfSale.Payment = class {
 		this.events = events;
 		this.custom_show_sales_man = settings.custom_show_sales_man
 		this.custom_show_additional_note = settings.custom_show_additional_note
+		this.custom_edit_rate = settings.custom_edit_rate_and_uom
 		// this.custom_show_credit_sales = settings.custom_show_credit_sales
 		this.init_component();
 	}
@@ -378,6 +379,12 @@ posnext.PointOfSale.Payment = class {
 	}
 
 	edit_cart() {
+		if(this.custom_edit_rate){
+			console.log("EDIIIIT CART")
+			const div = document.getElementById("customer-cart-container2");
+			div.style.gridColumn = "span 5 / span 5";
+		}
+
 		this.events.toggle_other_sections(false);
 		this.toggle_component(false);
 	}
