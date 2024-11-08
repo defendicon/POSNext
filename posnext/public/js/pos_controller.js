@@ -297,17 +297,9 @@ posnext.PointOfSale.Controller = class {
 			events: {
 				get_frm: () => this.frm,
 				remove_item_from_cart: (item) => {
-					console.log("ITEEEM DETAILS")
-					console.log(this.item_details)
 					this.item_details.current_item = item
 					this.item_details.name = item.name
 					this.item_details.doctype= item.doctype
-					frappe.confirm('Are you sure you want to remove this item from the cart?',
-						() => {
-							this.remove_item_from_cart()
-						}, () => {})
-
-
 
 				},
 				form_updated: (item, field, value) => {
@@ -412,10 +404,7 @@ posnext.PointOfSale.Controller = class {
 						});
 					})
 				},
-				remove_item_from_cart: () => {
-					console.log("ITEEEM DETAILS")
-					console.log(this.item_details)
-					this.remove_item_from_cart()},
+				remove_item_from_cart: () => this.remove_item_from_cart(),
 				get_item_stock_map: () => this.item_stock_map,
 				close_item_details: () => {
 					selected_item = null
@@ -848,10 +837,6 @@ item_row['rate'] = rate
 	remove_item_from_cart() {
 		frappe.dom.freeze();
 		const { doctype, name, current_item } = this.item_details;
-		console.log("REMOVE ITEM")
-		console.log(doctype)
-		console.log(name)
-		console.log(current_item)
 		return frappe.model.set_value(doctype, name, 'qty', 0)
 			.then(() => {
 				frappe.model.clear_doc(doctype, name);

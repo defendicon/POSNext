@@ -6,6 +6,7 @@ posnext.PointOfSale.ItemDetails = class {
 		this.hide_images = settings.hide_images;
 		this.allow_rate_change = settings.allow_rate_change;
 		this.allow_discount_change = settings.allow_discount_change;
+		this.custom_edit_rate_and_uom = settings.custom_edit_rate_and_uom;
 		this.current_item = {};
 
 		this.init_component();
@@ -74,9 +75,11 @@ posnext.PointOfSale.ItemDetails = class {
 			// in both cases, if the current item is a serialized item, then validate and remove the item
 			await this.validate_serial_batch_item();
 		}
+		if(!this.custom_edit_rate_and_uom){
+			this.events.toggle_item_selector(!hide_item_details);
+			this.toggle_component(!hide_item_details);
+		}
 
-		this.events.toggle_item_selector(!hide_item_details);
-		this.toggle_component(!hide_item_details);
 
 		if (item && current_item_changed) {
 			this.doctype = item.doctype;
