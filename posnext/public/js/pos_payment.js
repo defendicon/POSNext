@@ -7,7 +7,11 @@ posnext.PointOfSale.Payment = class {
 		this.custom_show_sales_man = settings.custom_show_sales_man
 		this.custom_show_additional_note = settings.custom_show_additional_note
 		this.custom_edit_rate = settings.custom_edit_rate_and_uom
-		// this.custom_show_credit_sales = settings.custom_show_credit_sales
+		this.custom_show_credit_sales = settings.custom_show_credit_sales
+		this.default_payment = settings.default_payment
+		this.current_payments = []
+
+		this.init_component();
 		this.init_component();
 	}
 
@@ -49,18 +53,18 @@ posnext.PointOfSale.Payment = class {
 		// frappe.db.get_doc("POS Settings", undefined).then((doc) => {
 			var me = this
 			const fields = [];
-			// if(this.custom_show_credit_sales){
-			// 	fields.push({
-			// 		fieldname: "custom_credit_sales",
-			// 		label: "Credit Sales",
-			// 		fieldtype: "Check",
-			// 	})
-			// 	fields.push({
-			// 		fieldname: "custom_credit_sales_date",
-			// 		label: "Credit Sales Date",
-			// 		fieldtype: "Date"
-			// 	})
-			// }
+			if(this.custom_show_credit_sales){
+				fields.push({
+					fieldname: "custom_credit_sales",
+					label: "Credit Sales",
+					fieldtype: "Check",
+				})
+				fields.push({
+					fieldname: "custom_credit_sales_date",
+					label: "Credit Sales Date",
+					fieldtype: "Date"
+				})
+			}
 			if(this.custom_show_sales_man){
 				fields.push({
 					fieldname: "sales_person",
@@ -81,7 +85,7 @@ posnext.PointOfSale.Payment = class {
 			this.$invoice_fields = this.$invoice_fields_section.find('.invoice-fields');
 			this.$invoice_fields.html('');
 			const frm = this.events.get_frm();
-
+			me.current_payments = frm.doc.payments
 			fields.forEach(df => {
 				this.$invoice_fields.append(
 					`<div class="invoice_detail_field ${df.fieldname}-field" data-fieldname="${df.fieldname}"></div>`
@@ -95,6 +99,27 @@ posnext.PointOfSale.Payment = class {
 								allocated_percentage: 100,
 							})
 						} else {
+							if(this.df.fieldname === 'custom_credit_sales'){
+								$('input[data-fieldname="custom_credit_sales_date"]').css("pointer-events",this.get_value() ? "" : "none")
+								if(this.get_value()){
+									$('input[data-fieldname="custom_credit_sales_date"]').removeAttr('readonly')
+
+									frm.doc.payments.forEach(p => {
+										const mode = p.mode_of_payment.replace(/ +/g, "_").toLowerCase();
+										me[`${mode}_control`].set_value(0);
+									})
+								} else {
+									console.log(me.current_payments)
+									$('input[data-fieldname="custom_credit_sales_date"]').attr('readonly', true);
+									me.current_payments.forEach(p => {
+										if(p.mode_of_payment === me.default_payment){
+											const mode = p.mode_of_payment.replace(/ +/g, "_").toLowerCase();
+											me[`${mode}_control`].set_value(frm.doc.grand_total);
+										}
+
+									})
+								}
+							}
 							frm.set_value(this.df.fieldname, this.get_value());
 						}
 		// 				if(this.df.fieldname === 'custom_credit_sales' && this.get_value()){
@@ -251,10 +276,15 @@ posnext.PointOfSale.Payment = class {
 
 		this.$component.on('click', '.submit-order-btn', () => {
 			const doc = this.events.get_frm().doc;
-			const paid_amount = doc.paid_amount;
+			let paid_amount = doc.paid_amount
+			if(cur_frm.doc.custom_credit_sales && this.custom_show_credit_sales){
+				cur_frm.clear_table("payments")
+				paid_amount = 0;
+			}
+
 			const items = doc.items;
 
-			if (paid_amount == 0 || !items.length) {
+			if ((paid_amount == 0 || !items.length) && !this.custom_show_credit_sales) {
 				const message = items.length ? __("You cannot submit the order without payment.") : __("You cannot submit empty order.");
 				frappe.show_alert({ message, indicator: "orange" });
 				frappe.utils.play_sound("error");
@@ -416,7 +446,6 @@ posnext.PointOfSale.Payment = class {
 	}
 
 	render_payment_mode_dom() {
-		console.log("HEEEEEEEEEEEEEEERE IN PAYMNETS")
 		const doc = this.events.get_frm().doc;
 		const payments = doc.payments;
 		const currency = doc.currency;
@@ -439,7 +468,7 @@ posnext.PointOfSale.Payment = class {
 				`);
 			}).join('')
 		}`);
-
+		this.current_payments = payments
 		payments.forEach(p => {
 			const mode = p.mode_of_payment.replace(/ +/g, "_").toLowerCase();
 			const me = this;
@@ -598,7 +627,11 @@ posnext.PointOfSale.Payment = class {
 	update_totals_section(doc) {
 		if (!doc) doc = this.events.get_frm().doc;
 		// doc.paid_amount = doc.grand_total
-		const paid_amount = doc.paid_amount;
+			const paid_amount = doc.paid_amount;
+
+		if(cur_frm.doc.custom_credit_sales){
+			const paid_amount = 0
+		}
 		const grand_total = cint(frappe.sys_defaults.disable_rounded_total) ? doc.grand_total : doc.rounded_total;
 		const remaining = grand_total - doc.paid_amount;
 		const change = doc.change_amount || remaining <= 0 ? -1 * remaining : undefined;

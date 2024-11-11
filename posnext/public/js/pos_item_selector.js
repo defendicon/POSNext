@@ -264,7 +264,7 @@ posnext.PointOfSale.ItemSelector = class {
 			`${get_item_image_html()}
 			${get_item_name()}
 			
-				<div class="item-name" >
+				<div style="overflow-wrap: break-word;overflow:hidden;white-space: normal;font-weight: 700;margin-right: 10px">
 					${item_data.item_name}
 				</div>
 				${get_description_html()}
@@ -276,7 +276,7 @@ posnext.PointOfSale.ItemSelector = class {
 		function get_item_name() {
 			var flex_value = 4
             if(me.custom_show_item_code && me.custom_show_last_incoming_rate && me.custom_show_oem_part_number){
-				flex_value = 3.5
+				flex_value = 3
             }
             if(!me.custom_show_item_code && !me.custom_show_last_incoming_rate && !me.custom_show_oem_part_number && !me.custom_show_logical_rack){
 				flex_value = 2
@@ -287,7 +287,7 @@ posnext.PointOfSale.ItemSelector = class {
             // if(me.custom_show_oem_part_number){
 				// flex_value -= 1
             // }
-			return `<div class="item-name-desc" style="flex: ` + flex_value +`">`
+			return `<div class="" style="flex: ` + flex_value +`;overflow-wrap: break-word;overflow:hidden;white-space: normal">`
         }
 		set_dynamic_rate_header_width();
 
@@ -335,7 +335,7 @@ posnext.PointOfSale.ItemSelector = class {
             if(me.custom_show_logical_rack){
 				html_code += `<div class="incoming-rate-desc" style="flex: 1;text-align: left">
 					<div class="incoming-rate" >
-						${item_data.custom_oem_part_number || ""}
+						${item_data.rack || ""}
 					</div>
 				</div>`
             }

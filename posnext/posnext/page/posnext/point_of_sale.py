@@ -95,8 +95,8 @@ def search_by_term(search_term,custom_show_alternative_item_for_pos_search, ware
 
 @frappe.whitelist()
 def get_items(start, page_length, price_list, item_group, pos_profile, search_term=""):
-	warehouse, hide_unavailable_items,custom_show_last_incoming_rate, custom_show_alternative_item_for_pos_search = frappe.db.get_value(
-		"POS Profile", pos_profile, ["warehouse", "hide_unavailable_items","custom_show_last_incoming_rate","custom_show_alternative_item_for_pos_search"]
+	warehouse, hide_unavailable_items,custom_show_last_incoming_rate, custom_show_alternative_item_for_pos_search,custom_show_logical_rack = frappe.db.get_value(
+		"POS Profile", pos_profile, ["warehouse", "hide_unavailable_items","custom_show_last_incoming_rate","custom_show_alternative_item_for_pos_search","custom_show_logical_rack"]
 	)
 
 	result = []
@@ -165,7 +165,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 			bin_join_selection=bin_join_selection,
 			bin_valuation_rate=bin_valuation_rate,
 			bin_join_condition=bin_join_condition,
-			bin_join_condition_valuation=bin_join_condition_valuation,
+			bin_join_condition_valuation=bin_join_condition_valuation
 		),
 		{"warehouse": warehouse},
 		as_dict=1,
@@ -176,6 +176,10 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 		return result
 
 	for item in items_data:
+		if custom_show_logical_rack:
+			rack = frappe.db.sql(""" SELECT * FROM `tabLogical Rack` WHERE item=%s and pos_profile=%s """,(item.item_code,pos_profile),as_dict=1)
+			if len(rack) > 0:
+				item['rack'] = rack[0].rack_id
 		uoms = frappe.get_doc("Item", item.item_code).get("uoms", [])
 
 		item.actual_qty, _ = get_stock_availability(item.item_code, warehouse)
@@ -391,7 +395,9 @@ def get_pos_profile_data(pos_profile):
 	for row in pos_profile.customer_groups:
 		children = get_child_nodes("Customer Group", row.customer_group)
 		_customer_groups_with_children.extend(children)
-
+	for row in pos_profile.payments:
+		if row.default:
+			pos_profile['default_payment'] = row.mode_of_payment
 	pos_profile.customer_groups = _customer_groups_with_children
 	return pos_profile
 

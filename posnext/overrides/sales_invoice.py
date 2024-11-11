@@ -31,3 +31,8 @@ class PosnextSalesInvoice(SalesInvoice):
             ):
                 print(self.paid_amount if not self.is_pos else self.grand_total)
                 frappe.throw(_("Paid amount + Write Off Amount can not be greater than Grand Total"))
+    def validate_pos_paid_amount(self):
+        if len(self.payments) == 0 and self.is_pos:
+            custom_show_credit_sales = frappe.get_value("POS Profile",self.pos_profile,"custom_show_credit_sales")
+            if not custom_show_credit_sales:
+                frappe.throw(_("At least one mode of payment is required for POS invoice."))
