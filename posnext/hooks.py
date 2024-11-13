@@ -137,6 +137,9 @@ doctype_js = {"POS Profile" : "public/js/pos_profile.js"}
 doc_events = {
 	"Item": {
 		"validate": "posnext.doc_events.item.validate_item"
+	},
+	"Sales Invoice": {
+		"validate": "posnext.doc_events.sales_invoice.validate_si"
 	}
 }
 

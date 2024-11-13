@@ -278,6 +278,9 @@ posnext.PointOfSale.ItemSelector = class {
             if(me.custom_show_item_code && me.custom_show_last_incoming_rate && me.custom_show_oem_part_number){
 				flex_value = 3
             }
+            // if(me.custom_show_item_code && me.custom_show_last_incoming_rate && !me.custom_show_oem_part_number){
+				// flex_value = 3
+            // }
             if(!me.custom_show_item_code && !me.custom_show_last_incoming_rate && !me.custom_show_oem_part_number && !me.custom_show_logical_rack){
 				flex_value = 2
             }
