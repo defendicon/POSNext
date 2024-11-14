@@ -12,7 +12,7 @@ posnext.PointOfSale.Payment = class {
 		this.current_payments = []
 
 		this.init_component();
-		this.init_component();
+		// this.init_component();
 	}
 
 	init_component() {
@@ -410,7 +410,6 @@ posnext.PointOfSale.Payment = class {
 
 	edit_cart() {
 		if(this.custom_edit_rate){
-			console.log("EDIIIIT CART")
 			const div = document.getElementById("customer-cart-container2");
 			div.style.gridColumn = "span 5 / span 5";
 		}
