@@ -43,11 +43,14 @@ posnext.PointOfSale.ItemSelector = class {
 
 	prepare_dom() {
 		if(view === "Card" && !this.show_only_list_view){
-
+			var tir = ``
+			if(this.custom_show_last_incoming_rate){
+				tir = `<div class="total-incoming-rate" style="margin-left: 10px;grid-column: span 2 / span 2"></div>`
+			}
 			this.wrapper.append(
 				`<section class="items-selector" id="card-view-section">
 					<div class="filter-section">
-						<div class="label" style="grid-column: span 1 / span 1">${__('All Items')}</div>
+						
 						<div class="list-view"><a class="list-span">List</a></div>
 						<div class="card-view"><a class="card-span">Card</a></div>
 						<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
@@ -55,6 +58,7 @@ posnext.PointOfSale.ItemSelector = class {
 						<!--<div class="item-code-search-field" style="grid-column: span 2 / span 2"></div>-->
 						<div class="item-group-field" style="grid-column: span 2 / span 2"></div>
 						<div class="invoice-posting-date" style="grid-column: span 2 / span 2"></div>
+						` + tir + `
 					</div>
 					<div class="items-container"></div>
 				</section>`
@@ -64,19 +68,26 @@ posnext.PointOfSale.ItemSelector = class {
 			this.$items_container = this.$component.find('.items-container');
 		} else if(view === "List" && !this.show_only_card_view) {
             var section = `<section class="customer-cart-container items-selector" id="list-view-section" style="grid-column: span 6 / span 6;overflow-y:hidden">`
+			var tir = ``
 			if(this.custom_edit_rate){
 			    section = `<section class="customer-cart-container items-selector" id="list-view-section" style="grid-column: span 5 / span 5;overflow-y:hidden">`
 			}
+			if(this.custom_show_last_incoming_rate){
+				tir = `<div class="total-incoming-rate" style="margin-left: 10px;grid-column: span 2 / span 2"></div>`
+			}
+
+
 			this.wrapper.append(
 				section + `<div class="filter-section">
-						<div class="label" style="grid-column: span 1 / span 1">${__('All Items')}</div>
+						
 						<div class="list-view"><a class="list-span">List</a></div>
 						<div class="card-view"><a class="card-span">Card</a></div>
 						<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
 						<div class="search-field" style="grid-column: span 2 / span 2"></div>
 						<!--<div class="item-code-search-field" style="grid-column: span 2 / span 2"></div>-->
 						<div class="item-group-field" style="grid-column: span 2 / span 2"></div>
-						<div class="invoice-posting-date" style="margin-left: 10px;grid-column: span 2 / span 2"></div>
+						<div class="invoice-posting-date" style="margin-left: 10px;grid-column: span 2 / span 2"></div>` + tir + `
+						
 					</div>
 					<div class="cart-container" ></div>
 				</section>`
@@ -213,17 +224,26 @@ posnext.PointOfSale.ItemSelector = class {
 
             }
 			this.make_cart_items_section();
+			var total_incoming_rate = 0
 			items.forEach(item => {
-
+				total_incoming_rate += item.valuation_rate
 				this.render_cart_item(item);
 
 				// this.$items_container.append(item_html);
 			});
+			if(this.custom_show_last_incoming_rate) {
+                this.total_incoming_rate.set_value(total_incoming_rate)
+            }
 		} else {
+			var total_incoming_rate = 0
 			items.forEach(item => {
+				total_incoming_rate += item.valuation_rate
                 var item_html = this.get_item_html(item);
                 this.$items_container.append(item_html);
         	})
+			if(this.custom_show_last_incoming_rate) {
+                this.total_incoming_rate.set_value(total_incoming_rate)
+            }
 		}
 
 		// this.$cart_container = this.$component.find('.cart-container');
@@ -324,7 +344,7 @@ posnext.PointOfSale.ItemSelector = class {
 			if(me.custom_show_last_incoming_rate){
 				html_code += `<div class="incoming-rate-desc" style="flex: 1;text-align: left">
 					<div class="incoming-rate" >
-						${item_data.valuation_rate}
+						${parseFloat(item_data.valuation_rate).toFixed(2)}
 					</div>
 				</div>`
             }
@@ -466,39 +486,38 @@ posnext.PointOfSale.ItemSelector = class {
 		this.$component.find('.search-field').html('');
 		// this.$component.find('.item-code-search-field').html('');
 		this.$component.find('.pos-profile').html('');
+		this.$component.find('.total-incoming-rate').html('');
 		this.$component.find('.item-group-field').html('');
 		this.$component.find('.invoice-posting-date').html('');
 		frappe.db.get_single_value("POS Settings","custom_profile_lock").then(doc => {
-			console.log("DOOOOOC")
-			console.log(doc)
-this.pos_profile_field = frappe.ui.form.make_control({
-					df: {
-						label: __('POS Profile'),
-						fieldtype: 'Link',
-						options: 'POS Profile',
-						placeholder: __('POS Profile'),
-						read_only: doc,
-						onchange: function () {
+			this.pos_profile_field = frappe.ui.form.make_control({
+				df: {
+					label: __('POS Profile'),
+					fieldtype: 'Link',
+					options: 'POS Profile',
+					placeholder: __('POS Profile'),
+					read_only: doc,
+					onchange: function () {
 
-							if(me.reload_status && me.pos_profile !== this.value){
-								frappe.pages['posnext'].refresh(window.wrapper,window.onScan,this.value)
-							}
-
-							// console.log("ON ON CHANGE")
-							// console.log(this.pos_profile_field)
-							// var value = this.pos_profile_field.get_value()
-							// if(value !== me.pos_profile){
-							// 	this.events.check_opening_entry()
-							// }
-							// window.wrapper.please_refresh = true
-							// frappe.pages['posnext'].refresh_data(window.wrapper)
-							// console.log("HEEEERE")
+						if(me.reload_status && me.pos_profile !== this.value){
+							frappe.pages['posnext'].refresh(window.wrapper,window.onScan,this.value)
 						}
-					},
-					parent: this.$component.find('.pos-profile'),
-					render_input: false,
-				});
-			this.pos_profile_field.set_value(me.pos_profile)
+
+						// console.log("ON ON CHANGE")
+						// console.log(this.pos_profile_field)
+						// var value = this.pos_profile_field.get_value()
+						// if(value !== me.pos_profile){
+						// 	this.events.check_opening_entry()
+						// }
+						// window.wrapper.please_refresh = true
+						// frappe.pages['posnext'].refresh_data(window.wrapper)
+						// console.log("HEEEERE")
+					}
+				},
+				parent: this.$component.find('.pos-profile'),
+				render_input: false,
+			});
+		this.pos_profile_field.set_value(me.pos_profile)
 		this.pos_profile_field.refresh()
 		this.pos_profile_field.toggle_label(false);
 
@@ -537,6 +556,19 @@ this.pos_profile_field = frappe.ui.form.make_control({
 			parent: this.$component.find('.item-group-field'),
 			render_input: true,
 		});
+		if(this.custom_show_last_incoming_rate) {
+            this.total_incoming_rate = frappe.ui.form.make_control({
+                df: {
+                    label: __('Total Inc.Rate'),
+                    fieldtype: 'Currency',
+                    read_only: 1,
+                    placeholder: __('Total Incoming Rate'),
+                    default: 0
+                },
+                parent: this.$component.find('.total-incoming-rate'),
+                render_input: true,
+            });
+        }
 		if(me.custom_show_posting_date){
 			this.invoice_posting_date = frappe.ui.form.make_control({
 				df: {
@@ -545,8 +577,6 @@ this.pos_profile_field = frappe.ui.form.make_control({
 					onchange: function() {
 						me.events.get_frm().doc.posting_date= this.value;
 						me.events.get_frm().doc.set_posting_time= 1;
-						console.log("DOOOOC")
-						console.log(me.events.get_frm().doc)
 					},
 
 				},
@@ -558,6 +588,9 @@ this.pos_profile_field = frappe.ui.form.make_control({
 
 		this.search_field.toggle_label(false);
 		this.item_group_field.toggle_label(false);
+		if(this.custom_show_last_incoming_rate) {
+            this.total_incoming_rate.toggle_label(false);
+        }
 		if(me.custom_show_posting_date) {
             this.invoice_posting_date.toggle_label(false);
             this.invoice_posting_date.set_value(frappe.datetime.get_today())
