@@ -224,26 +224,15 @@ posnext.PointOfSale.ItemSelector = class {
 
             }
 			this.make_cart_items_section();
-			var total_incoming_rate = 0
-			items.forEach(item => {
-				total_incoming_rate += item.valuation_rate
-				this.render_cart_item(item);
 
-				// this.$items_container.append(item_html);
-			});
-			if(this.custom_show_last_incoming_rate) {
-                this.total_incoming_rate.set_value(total_incoming_rate)
-            }
-		} else {
-			var total_incoming_rate = 0
 			items.forEach(item => {
-				total_incoming_rate += item.valuation_rate
+				this.render_cart_item(item);
+			});
+		} else {
+			items.forEach(item => {
                 var item_html = this.get_item_html(item);
                 this.$items_container.append(item_html);
         	})
-			if(this.custom_show_last_incoming_rate) {
-                this.total_incoming_rate.set_value(total_incoming_rate)
-            }
 		}
 
 		// this.$cart_container = this.$component.find('.cart-container');
@@ -274,6 +263,7 @@ posnext.PointOfSale.ItemSelector = class {
 			data-batch-no="${escape(item_data.batch_no)}" 
 			data-uom="${escape(item_data.uom)}"
 			data-rate="${escape(item_data.price_list_rate || 0)}"
+			data-valuation-rate="${escape(item_data.valuation_rate || 0)}"
 			title="${item_data.item_name}"
 			data-row-name="${escape(item_data.item_code)}"></div>
 			<div class="seperator"></div>`
@@ -479,7 +469,11 @@ posnext.PointOfSale.ItemSelector = class {
 		const item_abbr = $($img).attr('alt');
 		$($img).parent().replaceWith(`<div class="item-display abbr">${item_abbr}</div>`);
 	}
-
+	update_total_incoming_rate(total_rate){
+		console.log("TOOOOOTAL RATE ==================================================")
+		console.log(total_rate)
+		this.total_incoming_rate.set_value(total_rate)
+	}
 	make_search_bar() {
 		const me = this;
 		const doc = me.events.get_frm().doc;
@@ -673,6 +667,7 @@ posnext.PointOfSale.ItemSelector = class {
 			let serial_no = unescape($item.attr('data-serial-no'));
 			let uom = unescape($item.attr('data-uom'));
 			let rate = unescape($item.attr('data-rate'));
+			let valuation_rate = unescape($item.attr('data-valuation-rate'));
 
 			// escape(undefined) returns "un	defined" then unescape returns "undefined"
 			batch_no = batch_no === "undefined" ? undefined : batch_no;
@@ -682,7 +677,7 @@ posnext.PointOfSale.ItemSelector = class {
 			me.events.item_selected({
 				field: 'qty',
 				value: "+1",
-				item: { item_code, batch_no, serial_no, uom, rate }
+				item: { item_code, batch_no, serial_no, uom, rate ,valuation_rate}
 			});
 			// me.search_field.set_focus();
 		});

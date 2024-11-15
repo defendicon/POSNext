@@ -68,6 +68,8 @@ posnext.PointOfSale.ItemCart = class {
 						<div class="name-header" style="flex:2">${__('Item')}</div>
 						<div class="qty-header" style="flex: 1">${__('Qty')}</div>
 						<div class="uom-header" style="flex: 1">${__('UOM')}</div>
+						<div class="uom-header" style="flex: 1">${__('Rate')}</div>
+						<div class="uom-header" style="flex: 1">${__('Discount')}</div>
 						<div class="rate-amount-header" style="flex: 1;text-align: left">${__('Amount')}</div>
 					</div>
 					<div class="cart-items-section" ></div>
@@ -911,6 +913,30 @@ this.highlight_checkout_btn(true);
                     parent: $item_to_update.find(`.item-uom`),
                     render_input: true,
                 });
+            this[item_data.item_code + "_rate"] = frappe.ui.form.make_control({
+                    df: {
+                        fieldname: "rate",
+                        fieldtype: "Currency",
+						onchange: function() {
+							me.events.form_updated(item_data, "rate", this.value);
+						},
+                    },
+                    parent: $item_to_update.find(`.item-rate`),
+                    render_input: true,
+
+                });
+            this[item_data.item_code + "_discount"] = frappe.ui.form.make_control({
+                    df: {
+                        fieldname: "discount",
+                        fieldtype: "Currency",
+						onchange: function() {
+							me.events.form_updated(item_data, "discount_percentage", this.value);
+						},
+
+                    },
+                    parent: $item_to_update.find(`.item-rate-discount`),
+                    render_input: true,
+                });
             this[item_data.item_code + "_amount"] = frappe.ui.form.make_control({
                     df: {
                         fieldname: "amount",
@@ -942,9 +968,13 @@ this.highlight_checkout_btn(true);
 						}, () => {})
 
 			});
+			console.log("PERCEEEENTAAAAAAAAAAGE")
+			console.log(item_data.discount_percentage)
             this[item_data.item_code + "_qty"].set_value(item_data.qty)
             this[item_data.item_code + "_uom"].set_value(item_data.uom)
             this[item_data.item_code + "_amount"].set_value(item_data.amount)
+            this[item_data.item_code + "_rate"].set_value(item_data.rate)
+            this[item_data.item_code + "_discount"].set_value(item_data.discount_percentage)
 		}
 
 		set_dynamic_rate_header_width();
@@ -970,10 +1000,11 @@ this.highlight_checkout_btn(true);
 			if(me.custom_edit_rate){
 				if (item_data.rate && item_data.amount && item_data.rate !== item_data.amount) {
                     return `
-                        <div class="item-qty-rate" style="flex: 3">
-                            <div class="item-qty" style="flex: 1">
-                            </div>
+                        <div class="item-qty-rate" style="flex: 5">
+                            <div class="item-qty" style="flex: 1"></div>
                             <div class="item-uom" style="flex: 1;text-align: left"></div>
+                            <div class="item-rate" style="flex: 2"></div>
+                            <div class="item-rate-discount" style="flex: 2;text-align: left"></div>
                             <div class="item-rate-amount" style="flex: 2"></div>
                             <div class="remove-button" style="flex: 1;margin-top:15px;display: flex;
     justify-content: center; /* Center horizontally */
@@ -981,9 +1012,11 @@ this.highlight_checkout_btn(true);
                         </div>`
                 } else {
                     return `
-                        <div class="item-qty-rate" style="flex: 3">
+                        <div class="item-qty-rate" style="flex: 5">
                             <div class="item-qty" style="flex: 1"></div>
                             <div class="item-uom" style="flex: 1;text-align: left"></div>
+                             <div class="item-rate" style="flex: 2"></div>
+                            <div class="item-rate-discount" style="flex: 2;text-align: left"></div>
                             <div class="item-rate-amount" style="flex: 2"></div>
                             <div class="remove-button" style="flex: 1;margin-top:15px;display: flex;
     justify-content: center; /* Center horizontally */

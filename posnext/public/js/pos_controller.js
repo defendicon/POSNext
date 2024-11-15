@@ -312,7 +312,7 @@ posnext.PointOfSale.Controller = class {
 						const args = {
 							field,
 							value,
-							item: item
+							item: this.item_details.current_item
 						};
 						return this.on_cart_update(args);
 					}
@@ -626,6 +626,8 @@ posnext.PointOfSale.Controller = class {
 	async on_cart_update(args) {
 		frappe.dom.freeze();
 		let item_row = undefined;
+		console.log("ARGGGGGGGGGGGGS")
+		console.log(args)
 		try {
 			let { field, value, item } = args;
 			item_row = this.get_item_from_frm(item);
@@ -636,17 +638,16 @@ posnext.PointOfSale.Controller = class {
 				value = flt(item_row.stock_qty) + flt(value);
 
 			if (item_row_exists) {
-				console.log("EXIIIISTS")
 				if (field === 'qty')
 					value = flt(value);
 
-				if (['qty', 'conversion_factor'].includes(field) && value > 0 && !this.allow_negative_stock) {
+				if (['qty', 'conversion_factor',"rate"].includes(field) && value > 0 && !this.allow_negative_stock) {
 					const qty_needed = field === 'qty' ? value * item_row.conversion_factor : item_row.qty * value;
 					await this.check_stock_availability(item_row, qty_needed, this.frm.doc.set_warehouse);
 				}
 
 				if (this.is_current_item_being_edited(item_row) || from_selector) {
-					await frappe.model.set_value(item_row.doctype, item_row.name, field, value);
+					await frappe.model.set_value(item_row.doctype, item_row.name, field, value)
 					this.update_cart_html(item_row);
 				}
 
@@ -655,7 +656,7 @@ posnext.PointOfSale.Controller = class {
 					return this.raise_customer_selection_alert();
 				}
 				frappe.flags.ignore_company_party_validation = true
-				const { item_code, batch_no, serial_no, rate, uom } = item;
+				const { item_code, batch_no, serial_no, rate, uom,valuation_rate } = item;
 				if (!item_code)
 					return;
 
@@ -687,7 +688,11 @@ item_row['rate'] = rate
 					this.edit_item_details_of(item_row);
 
 			}
-
+		var total_incoming_rate = 0
+		this.frm.doc.items.forEach(item => {
+			total_incoming_rate += (parseFloat(item.valuation_rate) * item.qty)
+		});
+			this.item_selector.update_total_incoming_rate(total_incoming_rate)
 		} catch (error) {
 			console.log(error);
 		} finally {
@@ -759,6 +764,7 @@ item_row['rate'] = rate
 	async trigger_new_item_events(item_row) {
 		await this.frm.script_manager.trigger('item_code', item_row.doctype, item_row.name);
 		await this.frm.script_manager.trigger('qty', item_row.doctype, item_row.name);
+		await this.frm.script_manager.trigger('discount_percentage', item_row.doctype, item_row.name);
 	}
 
 	async check_stock_availability(item_row, qty_needed, warehouse) {
