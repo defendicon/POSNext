@@ -59,11 +59,11 @@ posnext.PointOfSale.Payment = class {
 					label: "Credit Sales",
 					fieldtype: "Check",
 				})
-				fields.push({
-					fieldname: "custom_credit_sales_date",
-					label: "Credit Sales Date",
-					fieldtype: "Date"
-				})
+				// fields.push({
+				// 	fieldname: "custom_credit_sales_date",
+				// 	label: "Credit Sales Date",
+				// 	fieldtype: "Date"
+				// })
 			}
 			if(this.custom_show_sales_man){
 				fields.push({
@@ -100,9 +100,9 @@ posnext.PointOfSale.Payment = class {
 							})
 						} else {
 							if(this.df.fieldname === 'custom_credit_sales'){
-								$('input[data-fieldname="custom_credit_sales_date"]').css("pointer-events",this.get_value() ? "" : "none")
+								// $('input[data-fieldname="custom_credit_sales_date"]').css("pointer-events",this.get_value() ? "" : "none")
 								if(this.get_value()){
-									$('input[data-fieldname="custom_credit_sales_date"]').removeAttr('readonly')
+									// $('input[data-fieldname="custom_credit_sales_date"]').removeAttr('readonly')
 
 									frm.doc.payments.forEach(p => {
 										const mode = p.mode_of_payment.replace(/ +/g, "_").toLowerCase();
@@ -110,7 +110,7 @@ posnext.PointOfSale.Payment = class {
 									})
 								} else {
 									console.log(me.current_payments)
-									$('input[data-fieldname="custom_credit_sales_date"]').attr('readonly', true);
+									// $('input[data-fieldname="custom_credit_sales_date"]').attr('readonly', true);
 									me.current_payments.forEach(p => {
 										if(p.mode_of_payment === me.default_payment){
 											const mode = p.mode_of_payment.replace(/ +/g, "_").toLowerCase();

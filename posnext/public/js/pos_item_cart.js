@@ -981,7 +981,7 @@ this.highlight_checkout_btn(true);
 			this[item_data.item_code + "_amount"] = frappe.ui.form.make_control({
                     df: {
                         fieldname: "amount",
-                        fieldtype: "Currency",
+                        fieldtype: "Data",
 						read_only: 1
 					},
                     parent: $item_to_update.find(`.item-rate-amount`),

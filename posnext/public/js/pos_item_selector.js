@@ -672,6 +672,8 @@ posnext.PointOfSale.ItemSelector = class {
 			serial_no = serial_no === "undefined" ? undefined : serial_no;
 			uom = uom === "undefined" ? undefined : uom;
 			rate = rate === "undefined" ? undefined : rate;
+			console.log("VALUUUATION RATE")
+			console.log(valuation_rate)
 			me.events.item_selected({
 				field: 'qty',
 				value: "+1",

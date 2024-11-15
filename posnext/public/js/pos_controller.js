@@ -678,6 +678,7 @@ posnext.PointOfSale.Controller = class {
 
 				await this.trigger_new_item_events(item_row);
 				item_row['rate'] = rate
+				item_row['valuation_rate'] = valuation_rate
 
 				this.update_cart_html(item_row);
 console.log("HEEERE")
@@ -689,8 +690,12 @@ console.log("HEEERE")
 			}
 		var total_incoming_rate = 0
 		this.frm.doc.items.forEach(item => {
+			console.log(item)
+			console.log(item.qty)
 			total_incoming_rate += (parseFloat(item.valuation_rate) * item.qty)
 		});
+			console.log("TOTAAAAAAAAL RAAAAAAAAAAATE")
+			console.log(total_incoming_rate)
 			this.item_selector.update_total_incoming_rate(total_incoming_rate)
 		} catch (error) {
 			console.log(error);

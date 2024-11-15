@@ -140,6 +140,9 @@ doc_events = {
 	},
 	"Sales Invoice": {
 		"validate": "posnext.doc_events.sales_invoice.validate_si"
+	},
+	"POS Profile": {
+		"validate": "posnext.doc_events.pos_profile.validate_pf"
 	}
 }
 
