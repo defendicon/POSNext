@@ -20,7 +20,6 @@ posnext.PointOfSale.Controller = class {
 	}
 
 	check_opening_entry(value = "") {
-		console.log("CHECK OPEEENING")
 		this.fetch_opening_entry(value).then((r) => {
 			if (r.message.length) {
 				// assuming only one opening voucher is available for the current user
@@ -626,8 +625,6 @@ posnext.PointOfSale.Controller = class {
 	async on_cart_update(args) {
 		frappe.dom.freeze();
 		let item_row = undefined;
-		console.log("ARGGGGGGGGGGGGS")
-		console.log(args)
 		try {
 			let { field, value, item } = args;
 			item_row = this.get_item_from_frm(item);
@@ -641,7 +638,7 @@ posnext.PointOfSale.Controller = class {
 				if (field === 'qty')
 					value = flt(value);
 
-				if (['qty', 'conversion_factor',"rate"].includes(field) && value > 0 && !this.allow_negative_stock) {
+				if (['qty', 'conversion_factor'].includes(field) && value > 0 && !this.allow_negative_stock) {
 					const qty_needed = field === 'qty' ? value * item_row.conversion_factor : item_row.qty * value;
 					await this.check_stock_availability(item_row, qty_needed, this.frm.doc.set_warehouse);
 				}
@@ -677,16 +674,18 @@ posnext.PointOfSale.Controller = class {
 					const qty_needed = value * item_row.conversion_factor;
 					await this.check_stock_availability(item_row, qty_needed, this.frm.doc.set_warehouse);
 				}
-				await this.trigger_new_item_events(item_row);
-item_row['rate'] = rate
-				this.update_cart_html(item_row);
 
+
+				await this.trigger_new_item_events(item_row);
+				item_row['rate'] = rate
+
+				this.update_cart_html(item_row);
+console.log("HEEERE")
 				if (this.item_details.$component.is(':visible'))
 					this.edit_item_details_of(item_row);
 
 				if (this.check_serial_batch_selection_needed(item_row) && !this.item_details.$component.is(':visible'))
 					this.edit_item_details_of(item_row);
-
 			}
 		var total_incoming_rate = 0
 		this.frm.doc.items.forEach(item => {
@@ -721,13 +720,13 @@ item_row['rate'] = rate
 			// then "item_code, batch_no, uom, rate" will help in getting the exact item
 			// to increase the qty by one
 			const has_batch_no = (batch_no !== 'null' && batch_no !== null);
-			const batch_no_check = this.settings.custom_allow_add_new_items_on_new_line ? (has_batch_no && i.batch_no === batch_no) : true
-			item_row = this.frm.doc.items.find(
-				i => i.item_code === item_code
-					&& batch_no_check
-					&& (i.uom === uom)
-					&& (i.rate === flt(rate))
-			);
+			const batch_no_check = this.settings.custom_allow_add_new_items_on_new_line ? (has_batch_no && cur_frm.doc.items[i].batch_no === batch_no) : true
+			for(var i=0;i<cur_frm.doc.items.length;i+=1){
+				if(cur_frm.doc.items[i].item_code === item_code && cur_frm.doc.items[i].uom === uom && parseFloat(cur_frm.doc.items[i].rate) === parseFloat(rate)){
+					item_row = cur_frm.doc.items[i]
+					break
+				}
+			}
 			console.log(item_row)
 		}
 		return item_row || {};
@@ -743,7 +742,9 @@ item_row['rate'] = rate
 
 	update_cart_html(item_row, remove_item) {
 		this.cart.update_item_html(item_row, remove_item);
+
 		this.cart.update_totals_section(this.frm);
+
 	}
 
 	check_serial_batch_selection_needed(item_row) {
@@ -773,7 +774,6 @@ item_row['rate'] = rate
 		const is_stock_item = resp[1];
 
 		frappe.dom.unfreeze();
-		console.log(item_row)
 		const bold_uom = item_row.uom.bold();
 		const bold_item_code = item_row.item_code.bold();
 		const bold_warehouse = warehouse.bold();

@@ -470,8 +470,6 @@ posnext.PointOfSale.ItemSelector = class {
 		$($img).parent().replaceWith(`<div class="item-display abbr">${item_abbr}</div>`);
 	}
 	update_total_incoming_rate(total_rate){
-		console.log("TOOOOOTAL RATE ==================================================")
-		console.log(total_rate)
 		this.total_incoming_rate.set_value(total_rate)
 	}
 	make_search_bar() {
