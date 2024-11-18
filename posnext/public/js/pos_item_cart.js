@@ -82,7 +82,7 @@ posnext.PointOfSale.ItemCart = class {
 				html += `<div class="discount-amount-header" style="flex: 1">${__('Disc')}</div>`
 			}
 
-		html += `<div class="rate-amount-header" style="flex: 2;text-align: center">${__('Amount')}</div>
+		html += `<div class="rate-amount-header" style="flex: 1;text-align: left">${__('Amount')}</div>
 					</div>
 					<div class="cart-items-section" ></div>
 					<div class="cart-totals-section"></div>
@@ -879,16 +879,16 @@ this.highlight_checkout_btn(true);
 		var item_html = `${get_item_image_html()}`
 
 		if(me.custom_use_discount_percentage && !me.custom_use_discount_amount){
-			item_html += `<div class="item-name-desc" style="flex: 2.3">`
+			item_html += `<div class="item-name-desc" style="flex: 2.8">`
 		}
 		if(me.custom_use_discount_amount && !me.custom_use_discount_percentage){
-			item_html += `<div class="item-name-desc" style="flex: 2.3">`
+			item_html += `<div class="item-name-desc" style="flex: 2.8">`
 		}
 		if(me.custom_use_discount_amount && me.custom_use_discount_percentage){
-			item_html += `<div class="item-name-desc" style="flex: 1.8">`
+			item_html += `<div class="item-name-desc" style="flex: 2.5">`
 		}
 		if(!me.custom_use_discount_amount && !me.custom_use_discount_percentage){
-			item_html += `<div class="item-name-desc" style="flex: 2.8">`
+			item_html += `<div class="item-name-desc" style="flex: 3.5">`
 		}
 
 		item_html += `<div class="item-name">
@@ -942,6 +942,7 @@ this.highlight_checkout_btn(true);
                     df: {
                         fieldname: "rate",
                         fieldtype: "Currency",
+						read_only: !me.allow_rate_change,
 						onchange: function() {
 							me.events.form_updated(item_data, "rate", this.value);
 						},
@@ -1059,7 +1060,7 @@ this.highlight_checkout_btn(true);
 						html += `<div class="item-rate-discount-amount" style="flex: 1;text-align: left"></div>`
 					}
 
-                    html += `<div class="item-rate-amount" style="flex: 2"></div>
+                    html += `<div class="item-rate-amount" style="flex: 1"></div>
 							<div class="remove-button" style="margin-top:15px;display: flex;justify-content: center;align-items: center;"></div>
                         </div>`
                     return html
@@ -1077,7 +1078,7 @@ this.highlight_checkout_btn(true);
 						html += `<div class="item-rate-discount-amount" style="flex: 1;text-align: left"></div>`
 					}
 
-                    html += `<div class="item-rate-amount" style="flex: 2"></div>
+                    html += `<div class="item-rate-amount" style="flex: 1"></div>
                             <div class="remove-button" style="margin-top:15px;display: flex;justify-content: center;align-items: center;"></div>
                         </div>`
                     return html
@@ -1088,9 +1089,9 @@ this.highlight_checkout_btn(true);
                         <div class="item-qty-rate" style="flex: 4" > 
                             <div class="item-qty" style="flex: 1"><span>${item_data.qty || 0}</span></div>
                             <div class="item-qty" style="flex: 1"><span> ${item_data.uom}</span></div>
-                            <div class="item-rate-amount" style="flex: 2">
-                                <div class="item-rate">${format_currency(item_data.amount, currency)}</div>
-                                <div class="item-amount">${format_currency(item_data.rate, currency)}</div>
+                            <div class="item-rate-amount" style="flex: 1">
+                                <div class="item-rate">${parseFloat(item_data.amount).toFixed(2)}</div>
+                                <div class="item-amount">${parseFloat(item_data.rate).toFixed(2)}</div>
                             </div>
                         </div>`
                 } else {
@@ -1098,8 +1099,8 @@ this.highlight_checkout_btn(true);
                         <div class="item-qty-rate" style="flex: 4" >
                             <div class="item-qty" style="flex: 1" ><span>${item_data.qty || 0}</span></div>
                             <div class="item-qty" style="flex: 1"><span> ${item_data.uom}</span></div>
-                            <div class="item-rate-amount" style="flex: 2">
-                                <div class="item-rate">${format_currency(item_data.rate, currency)}</div>
+                            <div class="item-rate-amount" style="flex: 1">
+                                <div class="item-rate">${parseFloat(item_data.rate).toFixed(2)}</div>
                             </div>
                         </div>`
                 }
