@@ -17,14 +17,15 @@ from erpnext.stock.utils import scan_barcode
 def search_by_term(search_term,custom_show_alternative_item_for_pos_search, warehouse, price_list):
 	result = search_for_serial_or_batch_or_barcode_number(search_term) or {}
 
-	item_code = ""
+	item_code = result.get("item_code", "")
 	serial_no = result.get("serial_no", "")
 	batch_no = result.get("batch_no", "")
 	barcode = result.get("barcode", "")
 
 	if not result:
 		return
-
+	print("RESSSSULT")
+	print(result)
 	item_doc = frappe.get_doc("Item", item_code)
 
 	if not item_doc:

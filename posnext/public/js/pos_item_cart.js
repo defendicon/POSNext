@@ -941,7 +941,7 @@ this.highlight_checkout_btn(true);
             this[item_data.item_code + "_rate"] = frappe.ui.form.make_control({
                     df: {
                         fieldname: "rate",
-                        fieldtype: "Currency",
+                        fieldtype: "Data",
 						read_only: !me.allow_rate_change,
 						onchange: function() {
 							me.events.form_updated(item_data, "rate", this.value);
@@ -1013,8 +1013,8 @@ this.highlight_checkout_btn(true);
             });
             this[item_data.item_code + "_qty"].set_value(item_data.qty)
             this[item_data.item_code + "_uom"].set_value(item_data.uom)
-            this[item_data.item_code + "_amount"].set_value(item_data.amount)
-            this[item_data.item_code + "_rate"].set_value(item_data.rate)
+            this[item_data.item_code + "_amount"].set_value(parseFloat(item_data.amount).toFixed(2))
+            this[item_data.item_code + "_rate"].set_value(parseFloat(item_data.rate).toFixed(2))
 
 			if(me.custom_use_discount_percentage){
 					this[item_data.item_code + "_discount"].set_value(item_data.discount_percentage)
