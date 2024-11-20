@@ -1002,13 +1002,12 @@ this.highlight_checkout_btn(true);
                 });
             remove_button.refresh(); // Make sure button is rendered
             $(remove_button.$input).on("click", function() {
-				frappe.confirm('Are you sure you want to remove this item from the cart?',
-						() => {
+console.log("REMOOOOOVE")
+
 							me.events.remove_item_from_cart(item_data)
 							me.prev_action = undefined;
 							me.toggle_item_highlight();
 							me.events.numpad_event(undefined, "remove");
-						}, () => {})
 
             });
             this[item_data.item_code + "_qty"].set_value(item_data.qty)

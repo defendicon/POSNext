@@ -42,6 +42,12 @@ posnext.PointOfSale.ItemSelector = class {
 	}
 
 	prepare_dom() {
+		var cardlist = ``
+		if(this.show_only_list_view && this.show_only_card_view){
+			cardlist = `<div class="list-view"><a class="list-span">List</a></div>
+			<div class="card-view"><a class="card-span">Card</a></div>`
+		}
+
 		if(view === "Card" && !this.show_only_list_view){
 			var tir = ``
 			if(this.custom_show_last_incoming_rate){
@@ -49,12 +55,10 @@ posnext.PointOfSale.ItemSelector = class {
 			}
 			this.wrapper.append(
 				`<section class="items-selector" id="card-view-section">
-					<div class="filter-section">
+					<div class="filter-section">` + cardlist + `
 						
-						<div class="list-view"><a class="list-span">List</a></div>
-						<div class="card-view"><a class="card-span">Card</a></div>
 						<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
-						<div class="search-field" style="grid-column: span 2 / span 2"></div>
+						<div class="search-field" style="grid-column: span 4 / span 4"></div>
 						<!--<div class="item-code-search-field" style="grid-column: span 2 / span 2"></div>-->
 						<div class="item-group-field" style="grid-column: span 2 / span 2"></div>
 						<div class="invoice-posting-date" style="grid-column: span 2 / span 2"></div>
@@ -78,12 +82,8 @@ posnext.PointOfSale.ItemSelector = class {
 
 
 			this.wrapper.append(
-				section + `<div class="filter-section">
-						
-						<div class="list-view"><a class="list-span">List</a></div>
-						<div class="card-view"><a class="card-span">Card</a></div>
-						<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
-						<div class="search-field" style="grid-column: span 2 / span 2"></div>
+				section + `<div class="filter-section">` + cardlist + `<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
+						<div class="search-field" style="grid-column: span 4 / span 4"></div>
 						<!--<div class="item-code-search-field" style="grid-column: span 2 / span 2"></div>-->
 						<div class="item-group-field" style="grid-column: span 2 / span 2"></div>
 						<div class="invoice-posting-date" style="margin-left: 10px;grid-column: span 2 / span 2"></div>` + tir + `
@@ -96,23 +96,72 @@ posnext.PointOfSale.ItemSelector = class {
 			this.$component = this.wrapper.find('.customer-cart-container');
 			this.$items_container = this.$component.find('.cart-container');
 		}
+		if(this.show_only_list_view && this.show_only_card_view) {
+            this.$list_view = this.$component.find('.list-view');
+            this.$card_view = this.$component.find('.card-view');
+            if (view === "List" && !this.show_only_list_view) {
+                this.$list_view.find('.list-span').css({
+                    "display": "inline-block",
+                    "background-color": "#3498db",
+                    "color": "white",
+                    "padding": "5px 10px",
+                    "border-radius": "20px",
+                    "font-size": "14px",
+                    "font-weight": "bold",
+                    "text-transform": "uppercase",
+                    "letter-spacing": "1px",
+                    "cursor": "pointer",
+                    "transition": "background-color 0.3s ease"
+                });
+                this.$card_view.find('.card-span').css({
+                    "display": "",
+                    "background-color": "",
+                    "color": "",
+                    "padding": "",
+                    "border-radius": "",
+                    "font-size": "",
+                    "font-weight": "",
+                    "text-transform": "",
+                    "letter-spacing": "",
+                    "cursor": "",
+                    "transition": ""
+                });
+            } else if (view === "Card" && !this.show_only_card_view) {
+                this.$card_view.find('.card-span').css({
+                    "display": "inline-block",
+                    "background-color": "#3498db",
+                    "color": "white",
+                    "padding": "5px 10px",
+                    "border-radius": "20px",
+                    "font-size": "14px",
+                    "font-weight": "bold",
+                    "text-transform": "uppercase",
+                    "letter-spacing": "1px",
+                    "cursor": "pointer",
+                    "transition": "background-color 0.3s ease"
+                });
+                this.$list_view.find('.list-span').css({
+                    "display": "",
+                    "background-color": "",
+                    "color": "",
+                    "padding": "",
+                    "border-radius": "",
+                    "font-size": "",
+                    "font-weight": "",
+                    "text-transform": "",
+                    "letter-spacing": "",
+                    "cursor": "",
+                    "transition": ""
+                });
+            } else {
+                this.$list_view.find('.list-span').css({"display": "none"});
+                this.$card_view.find('.card-span').css({"display": "none"});
 
-		this.$list_view = this.$component.find('.list-view');
-		this.$card_view = this.$component.find('.card-view');
-		if(view === "List" && !this.show_only_list_view){
-			this.$list_view.find('.list-span').css({"display": "inline-block","background-color": "#3498db","color": "white","padding": "5px 10px", "border-radius": "20px", "font-size": "14px","font-weight": "bold", "text-transform": "uppercase","letter-spacing": "1px","cursor": "pointer", "transition": "background-color 0.3s ease"});
-			this.$card_view.find('.card-span').css({"display":  "","background-color": "","color": "","padding": "", "border-radius": "", "font-size": "","font-weight": "", "text-transform": "","letter-spacing": "","cursor": "", "transition": ""});
-		} else if(view === "Card" && !this.show_only_card_view){
-			this.$card_view.find('.card-span').css({"display": "inline-block","background-color": "#3498db","color": "white","padding": "5px 10px", "border-radius": "20px", "font-size": "14px","font-weight": "bold", "text-transform": "uppercase","letter-spacing": "1px","cursor": "pointer", "transition": "background-color 0.3s ease"});
-			this.$list_view.find('.list-span').css({"display":  "","background-color": "","color": "","padding": "", "border-radius": "", "font-size": "","font-weight": "", "text-transform": "","letter-spacing": "","cursor": "", "transition": ""});
-		} else {
-			this.$list_view.find('.list-span').css({"display": "none"});
-			this.$card_view.find('.card-span').css({"display":  "none"});
-
-		}
-		if(!this.show_only_card_view && !this.show_only_list_view){
-			this.click_functions()
-		}
+            }
+            if (!this.show_only_card_view && !this.show_only_list_view) {
+                this.click_functions()
+            }
+        }
 	}
 	click_functions(){
 		this.$list_view.on('click', 'a', () => {

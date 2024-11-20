@@ -3,6 +3,7 @@ var selected_item = null
 
 posnext.PointOfSale.Controller = class {
 	constructor(wrapper) {
+		console.log("CONTROLLLLLERE")
 		this.wrapper = $(wrapper).find('.layout-main-section');
 		this.page = wrapper.page;
 		frappe.run_serially([
