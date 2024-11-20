@@ -43,7 +43,7 @@ posnext.PointOfSale.ItemSelector = class {
 
 	prepare_dom() {
 		var cardlist = ``
-		if(this.show_only_list_view && this.show_only_card_view){
+		if(!this.show_only_list_view && !this.show_only_card_view){
 			cardlist = `<div class="list-view"><a class="list-span">List</a></div>
 			<div class="card-view"><a class="card-span">Card</a></div>`
 		}
@@ -96,7 +96,7 @@ posnext.PointOfSale.ItemSelector = class {
 			this.$component = this.wrapper.find('.customer-cart-container');
 			this.$items_container = this.$component.find('.cart-container');
 		}
-		if(this.show_only_list_view && this.show_only_card_view) {
+        if(!this.show_only_list_view && !this.show_only_card_view) {
             this.$list_view = this.$component.find('.list-view');
             this.$card_view = this.$component.find('.card-view');
             if (view === "List" && !this.show_only_list_view) {
