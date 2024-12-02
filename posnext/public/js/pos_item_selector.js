@@ -816,7 +816,6 @@ posnext.PointOfSale.ItemSelector = class {
 					this.search_index[search_term] = items;
 				}
 				this.items = items;
-
 				this.render_item_list(items);
 				this.auto_add_item && this.items.length == 1;
 			});

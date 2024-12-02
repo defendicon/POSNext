@@ -947,7 +947,7 @@ this.highlight_checkout_btn(true);
 		    this[item_data.item_code + "_qty"] = frappe.ui.form.make_control({
 				df: {
 					fieldname: "qty",
-					fieldtype: "Int",
+					fieldtype: "Float",
 					onchange: function() {
 						// me.events.cart_item_clicked({ name: item_data.name });
 						me.events.form_updated(item_data, "qty", this.value);

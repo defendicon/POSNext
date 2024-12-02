@@ -194,6 +194,8 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 				"item_code": item.item_code,
 				"selling": True,
 			},
+			order_by="creation desc",
+			limit=1
 		)
 
 		if not item_price:
