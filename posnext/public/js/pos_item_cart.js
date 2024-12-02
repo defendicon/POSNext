@@ -16,6 +16,7 @@ posnext.PointOfSale.ItemCart = class {
 		this.custom_edit_rate = settings.custom_edit_rate_and_uom;
 		this.custom_use_discount_percentage = settings.custom_use_discount_percentage;
 		this.custom_use_discount_amount = settings.custom_use_discount_amount;
+		this.custom_use_additional_discount_amount = settings.custom_use_additional_discount_amount;
 		// this.custom_edit_uom = settings.custom_edit_uom;
 		this.settings = settings;
 		this.init_component();
@@ -671,31 +672,62 @@ this.highlight_checkout_btn(true);
 		const me = this;
 		const frm = me.events.get_frm();
 		let discount = frm.doc.additional_discount_percentage;
-
-		this.discount_field = frappe.ui.form.make_control({
-			df: {
-				label: __('Discount'),
-				fieldtype: 'Data',
-				placeholder: ( discount ? discount + '%' :  __('Enter discount percentage.') ),
-				input_class: 'input-xs',
-				onchange: function() {
-					if (flt(this.value) != 0) {
-						frappe.model.set_value(frm.doc.doctype, frm.doc.name, 'additional_discount_percentage', flt(this.value));
-						me.hide_discount_control(this.value);
-					} else {
-						frappe.model.set_value(frm.doc.doctype, frm.doc.name, 'additional_discount_percentage', 0);
-						me.$add_discount_elem.css({
-							'border': '1px dashed var(--gray-500)',
-							'padding': 'var(--padding-sm) var(--padding-md)'
-						});
-						me.$add_discount_elem.html(`${me.get_discount_icon()} ${__('Add Discount')}`);
-						me.discount_field = undefined;
-					}
+		this.discount_field = null;
+		if(me.custom_use_additional_discount_amount){
+			this.discount_field = frappe.ui.form.make_control({
+				df: {
+					label: __('Discount'),
+					fieldtype: 'Data',
+					placeholder: ( discount ? discount :  __('Enter discount amount.') ),
+					input_class: 'input-xs',
+					onchange: function() {
+						if (flt(this.value) != 0) {
+							frappe.model.set_value(frm.doc.doctype, frm.doc.name, 'discount_amount', flt(this.value));
+							me.hide_discount_control(this.value);
+							
+						} else {
+							frappe.model.set_value(frm.doc.doctype, frm.doc.name, 'discount_amount', 0);
+							me.$add_discount_elem.css({
+								'border': '1px dashed var(--gray-500)',
+								'padding': 'var(--padding-sm) var(--padding-md)'
+							});
+							me.$add_discount_elem.html(`${me.get_discount_icon()} ${__('Add Discount')}`);
+							me.discount_field = undefined;
+						}
+					},
 				},
-			},
-			parent: this.$add_discount_elem.find('.add-discount-field'),
-			render_input: true,
-		});
+				parent: this.$add_discount_elem.find('.add-discount-field'),
+				render_input: true,
+			});
+		}else{
+			this.discount_field = frappe.ui.form.make_control({
+				df: {
+					label: __('Discount'),
+					fieldtype: 'Data',
+					placeholder: ( discount ? discount + '%' :  __('Enter discount percentage.') ),
+					input_class: 'input-xs',
+					onchange: function() {
+						if (flt(this.value) != 0) {
+							frappe.model.set_value(frm.doc.doctype, frm.doc.name, 'additional_discount_percentage', flt(this.value));
+							console.log("this.custom_use_additional_discount_amount")
+							console.log(me.custom_use_additional_discount_amount)
+							me.hide_discount_control(this.value);
+							
+						} else {
+							frappe.model.set_value(frm.doc.doctype, frm.doc.name, 'additional_discount_percentage', 0);
+							me.$add_discount_elem.css({
+								'border': '1px dashed var(--gray-500)',
+								'padding': 'var(--padding-sm) var(--padding-md)'
+							});
+							me.$add_discount_elem.html(`${me.get_discount_icon()} ${__('Add Discount')}`);
+							me.discount_field = undefined;
+						}
+					},
+				},
+				parent: this.$add_discount_elem.find('.add-discount-field'),
+				render_input: true,
+			});
+		}
 		this.discount_field.toggle_label(false);
 		this.discount_field.set_focus();
 	}
@@ -711,11 +743,20 @@ this.highlight_checkout_btn(true);
 				'border': '1px dashed var(--dark-green-500)',
 				'padding': 'var(--padding-sm) var(--padding-md)'
 			});
-			this.$add_discount_elem.html(
-				`<div class="edit-discount-btn">
-					${this.get_discount_icon()} ${__("Additional")}&nbsp;${String(discount).bold()}% ${__("discount applied")}
-				</div>`
-			);
+			if(this.custom_use_additional_discount_amount){
+				this.$add_discount_elem.html(
+					`<div class="edit-discount-btn">
+						${this.get_discount_icon()} ${__("Additional")}&nbsp;${String(discount).bold()}&nbsp;${this.events.get_frm().doc.currency} ${__("discount applied")}
+					</div>`
+				);
+			}else{
+				this.$add_discount_elem.html(
+					`<div class="edit-discount-btn">
+						${this.get_discount_icon()} ${__("Additional")}&nbsp;${String(discount).bold()}% ${__("discount applied")}
+					</div>`
+				);
+			}
+			
 		}
 	}
 
