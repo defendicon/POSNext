@@ -54,18 +54,20 @@ posnext.PointOfSale.ItemSelector = class {
 				tir = `<div class="total-incoming-rate" style="margin-left: 10px;grid-column: span 2 / span 2"></div>`
 			}
 			this.wrapper.append(
-				`<section class="items-selector" id="card-view-section">
-					<div class="filter-section">` + cardlist + `
-						
-						<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
-						<div class="search-field" style="grid-column: span 4 / span 4"></div>
-						<!--<div class="item-code-search-field" style="grid-column: span 2 / span 2"></div>-->
-						<div class="item-group-field" style="grid-column: span 2 / span 2"></div>
-						<div class="invoice-posting-date" style="grid-column: span 2 / span 2"></div>
-						` + tir + `
-					</div>
-					<div class="items-container"></div>
-				</section>`
+				`<div class="items-container">
+					<section class="items-selector" id="card-view-section">
+						<div class="filter-section">` + cardlist + `
+							
+							<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
+							<div class="search-field" style="grid-column: span 4 / span 4"></div>
+							<!--<div class="item-code-search-field" style="grid-column: span 2 / span 2"></div>-->
+							<div class="item-group-field" style="grid-column: span 2 / span 2"></div>
+							<div class="invoice-posting-date" style="grid-column: span 2 / span 2"></div>
+							` + tir + `
+						</div>
+						<div class="items-container"></div>
+					</section>
+				</div>`
 			);
 
 			this.$component = this.wrapper.find('.items-selector');
@@ -239,7 +241,7 @@ posnext.PointOfSale.ItemSelector = class {
 						<div style="flex: 1">${__('Avail. Qty')}</div>
 						<!--<div class="qty-header">${__('UOM')}</div>-->
 					</div>
-					<div class="cart-items-section" style="overflow-y:hidden;font-size: 12px"></div>
+					<div class="cart-items-section" style="overflow-y:scroll;font-size: 12px"></div>
 				</div>`)
 
 			function get_item_code_header() {
