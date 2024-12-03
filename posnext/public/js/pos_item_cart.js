@@ -17,6 +17,8 @@ posnext.PointOfSale.ItemCart = class {
 		this.custom_use_discount_percentage = settings.custom_use_discount_percentage;
 		this.custom_use_discount_amount = settings.custom_use_discount_amount;
 		this.custom_use_additional_discount_amount = settings.custom_use_additional_discount_amount;
+		this.custom_show_incoming_rate = settings.custom_show_incoming_rate;
+		this.custom_show_last_customer_rate = settings.custom_show_last_customer_rate;
 		// this.custom_edit_uom = settings.custom_edit_uom;
 		this.settings = settings;
 		this.init_component();
@@ -82,6 +84,13 @@ posnext.PointOfSale.ItemCart = class {
 			if(this.custom_use_discount_amount){
 				html += `<div class="discount-amount-header" style="flex: 1">${__('Disc')}</div>`
 			}
+			if(this.custom_show_incoming_rate){
+				html += `<div class="incoming-rate-header" style="flex: 1">${__('Inc.Rate')}</div>`
+			}
+			if(this.custom_show_last_customer_rate){
+				html += `<div class="last-customer-rate-header" style="flex: 1">${__('LC Rate')}</div>`
+			}
+			
 
 		html += `<div class="rate-amount-header" style="flex: 1;text-align: left">${__('Amount')}</div>
 					</div>
@@ -1020,6 +1029,28 @@ this.highlight_checkout_btn(true);
                     render_input: true,
                 });
 			}
+			if(this.custom_show_incoming_rate){
+				this[item_data.item_code + "_incoming_rate"] = frappe.ui.form.make_control({
+					df: {
+						fieldname: "incoming_rate",
+						fieldtype: "Data",
+						read_only: 1
+					},
+					parent: $item_to_update.find(`.item-incoming-rate`),
+					render_input: true,
+				});
+			}
+			if(this.custom_show_last_customer_rate){
+				this[item_data.item_code + "_last_customer_rate"] = frappe.ui.form.make_control({
+					df: {
+						fieldname: "last_customer_rate",
+						fieldtype: "Data",
+						read_only: 1
+					},
+					parent: $item_to_update.find(`.item-last-customer-rate`),
+					render_input: true,
+				});
+			}
 			this[item_data.item_code + "_amount"] = frappe.ui.form.make_control({
                     df: {
                         fieldname: "amount",
@@ -1043,7 +1074,7 @@ this.highlight_checkout_btn(true);
                 });
             remove_button.refresh(); // Make sure button is rendered
             $(remove_button.$input).on("click", function() {
-console.log("REMOOOOOVE")
+			console.log("REMOOOOOVE")
 
 							me.events.remove_item_from_cart(item_data)
 							me.prev_action = undefined;
@@ -1057,10 +1088,21 @@ console.log("REMOOOOOVE")
             this[item_data.item_code + "_rate"].set_value(parseFloat(item_data.rate).toFixed(2))
 
 			if(me.custom_use_discount_percentage){
-					this[item_data.item_code + "_discount"].set_value(item_data.discount_percentage)
+				this[item_data.item_code + "_discount"].set_value(item_data.discount_percentage)
 			}
 			if(me.custom_use_discount_amount){
-					this[item_data.item_code + "_discount_amount"].set_value(item_data.discount_amount)
+				this[item_data.item_code + "_discount_amount"].set_value(item_data.discount_amount)
+			}
+			if(me.custom_show_incoming_rate){
+				this[item_data.item_code + "_incoming_rate"].set_value(item_data.valuation_rate)
+			}
+			if(me.custom_show_last_customer_rate){
+				frappe.xcall("posnext.posnext.page.posnext.point_of_sale.get_lcr", {
+					"customer": me.customer_info.customer, "item_code": item_data.item_code
+				}).then(d=>{
+					console.log(d)
+					this[item_data.item_code + "_last_customer_rate"].set_value(d)
+				})
 			}
 		}
 
@@ -1099,7 +1141,12 @@ console.log("REMOOOOOVE")
 					if(me.custom_use_discount_amount){
 						html += `<div class="item-rate-discount-amount" style="flex: 1;text-align: left"></div>`
 					}
-
+					if(me.custom_show_incoming_rate){
+						html += `<div class="item-incoming-rate" style="flex: 1"></div>`
+					}
+					if(me.custom_show_last_customer_rate){
+						html += `<div class="item-last-customer-rate" style="flex: 1"></div>`
+					}
                     html += `<div class="item-rate-amount" style="flex: 1"></div>
 							<div class="remove-button" style="margin-top:15px;display: flex;justify-content: center;align-items: center;"></div>
                         </div>`
@@ -1117,7 +1164,12 @@ console.log("REMOOOOOVE")
 					if(me.custom_use_discount_amount){
 						html += `<div class="item-rate-discount-amount" style="flex: 1;text-align: left"></div>`
 					}
-
+					if(me.custom_show_incoming_rate){
+						html += `<div class="item-incoming-rate" style="flex: 1"></div>`
+					}
+					if(me.custom_show_last_customer_rate){
+						html += `<div class="item-last-customer-rate" style="flex: 1"></div>`
+					}
                     html += `<div class="item-rate-amount" style="flex: 1"></div>
                             <div class="remove-button" style="margin-top:15px;display: flex;justify-content: center;align-items: center;"></div>
                         </div>`

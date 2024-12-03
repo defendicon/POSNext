@@ -710,6 +710,7 @@ posnext.PointOfSale.ItemSelector = class {
 
 
 		this.$component.on('click', '.item-wrapper', function() {
+			console.log("OnClick Item Wrapper")
 			const $item = $(this);
 			const item_code = unescape($item.attr('data-item-code'));
 			let batch_no = unescape($item.attr('data-batch-no'));
@@ -723,8 +724,6 @@ posnext.PointOfSale.ItemSelector = class {
 			serial_no = serial_no === "undefined" ? undefined : serial_no;
 			uom = uom === "undefined" ? undefined : uom;
 			rate = rate === "undefined" ? undefined : rate;
-			console.log("VALUUUATION RATE")
-			console.log(valuation_rate)
 			me.events.item_selected({
 				field: 'qty',
 				value: "+1",
