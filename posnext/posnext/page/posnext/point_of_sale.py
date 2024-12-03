@@ -445,3 +445,17 @@ def make_sales_return(source_name, target_doc=None):
 	from erpnext.controllers.sales_and_purchase_return import make_return_doc
 
 	return make_return_doc("Sales Invoice", source_name, target_doc)
+
+
+@frappe.whitelist()
+def get_lcr(customer, item_code):
+	d = frappe.db.sql(f"""
+	SELECT item.rate FROM `tabSales Invoice Item` item INNER JOIN `tabSales Invoice` SI ON SI.name=item.parent
+	WHERE SI.customer='{customer}' AND item.item_code='{item_code}' 
+	ORDER BY SI.creation desc 
+	LIMIT 1
+	""", as_dict=True)
+	if d:
+		return d[0].rate
+	else:
+		return 0
