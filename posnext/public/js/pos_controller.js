@@ -206,7 +206,7 @@ posnext.PointOfSale.Controller = class {
 
 	save_draft_invoice() {
 		if (!this.$components_wrapper.is(":visible")) return;
-
+		console.log(this.frm.doc.items)
 		if (this.frm.doc.items.length == 0) {
 			frappe.show_alert({
 				message: __("You must add atleast one item to save it as draft."),
@@ -457,7 +457,8 @@ posnext.PointOfSale.Controller = class {
 					this.wrapper.find('.past-order-summary').css("display","none");
 				},
 
-			}
+			},
+			settings: this.settings,
 		})
 	}
 
@@ -479,6 +480,7 @@ posnext.PointOfSale.Controller = class {
 					});
 				},
 				edit_order: (name) => {
+					console.log("Edit Order...")
 					this.recent_order_list.toggle_component(false);
 					frappe.run_serially([
 						() => this.frm.refresh(name),
@@ -641,7 +643,7 @@ posnext.PointOfSale.Controller = class {
 					return this.raise_customer_selection_alert();
 				}
 				frappe.flags.ignore_company_party_validation = true
-				const { item_code, batch_no, serial_no, rate, uom,valuation_rate } = item;
+				const { item_code, batch_no, serial_no, rate, uom, valuation_rate } = item;
 				if (!item_code)
 					return;
 
@@ -666,7 +668,8 @@ posnext.PointOfSale.Controller = class {
 
 				await this.trigger_new_item_events(item_row);
 				item_row['rate'] = rate
-				item_row['valuation_rate'] = valuation_rate
+				item_row['valuation_rate'] = valuation_rate;
+				item_row['custom_valuation_rate'] = valuation_rate;
 
 				// this.update_cart_html(item_row);
 				// console.log("HEEERE")

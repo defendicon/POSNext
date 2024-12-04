@@ -28,6 +28,7 @@ posnext.PointOfSale.ItemSelector = class {
 		this.show_only_list_view = settings.custom_show_only_list_view
 		this.show_only_card_view = settings.custom_show_only_card_view
 		this.custom_edit_rate = settings.custom_edit_rate_and_uom
+		this.custom_show_incoming_rate = settings.custom_show_incoming_rate && settings.custom_edit_rate_and_uom;
 		// this.custom_edit_uom = settings.custom_edit_uom
 		this.inti_component();
 	}
@@ -50,7 +51,7 @@ posnext.PointOfSale.ItemSelector = class {
 
 		if(view === "Card" && !this.show_only_list_view){
 			var tir = ``
-			if(this.custom_show_last_incoming_rate){
+			if(this.custom_show_last_incoming_rate || this.custom_show_incoming_rate){
 				tir = `<div class="total-incoming-rate" style="margin-left: 10px;grid-column: span 2 / span 2"></div>`
 			}
 			this.wrapper.append(
@@ -78,7 +79,7 @@ posnext.PointOfSale.ItemSelector = class {
 			if(this.custom_edit_rate){
 			    section = `<section class="customer-cart-container items-selector" id="list-view-section" style="grid-column: span 5 / span 5;overflow-y:hidden">`
 			}
-			if(this.custom_show_last_incoming_rate){
+			if(this.custom_show_last_incoming_rate || this.custom_show_incoming_rate){
 				tir = `<div class="total-incoming-rate" style="margin-left: 10px;grid-column: span 2 / span 2"></div>`
 			}
 
@@ -599,10 +600,10 @@ posnext.PointOfSale.ItemSelector = class {
 			parent: this.$component.find('.item-group-field'),
 			render_input: true,
 		});
-		if(this.custom_show_last_incoming_rate) {
+		if(this.custom_show_last_incoming_rate || this.custom_show_incoming_rate) {
             this.total_incoming_rate = frappe.ui.form.make_control({
                 df: {
-                    label: __('Total Inc.Rate'),
+                    label: __(''),
                     fieldtype: 'Currency',
                     read_only: 1,
                     placeholder: __('Total Incoming Rate'),
