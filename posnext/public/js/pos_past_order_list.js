@@ -1,10 +1,11 @@
 frappe.provide('posnext.PointOfSale');
 var invoicess = []
 posnext.PointOfSale.PastOrderList = class {
-	constructor({ wrapper, events }) {
+	constructor({ wrapper, events, settings }) {
 		this.wrapper = wrapper;
 		this.events = events;
-
+		this.pos_profile = settings.name
+		this.custom_filter_order_list_by_profile = settings.custom_filter_order_list_by_profile
 		this.init_component();
 	}
 
@@ -90,13 +91,17 @@ posnext.PointOfSale.PastOrderList = class {
 		this.events.reset_summary();
 		const search_term = this.search_field.get_value();
 		const status = this.status_field.get_value();
-
+		const pos_profile = this.pos_profile;
 		this.$invoices_container.html('');
-
+		let filter = { search_term, status };
+		if(this.custom_filter_order_list_by_profile){
+			filter = { search_term, status, pos_profile }
+		}
+		
 		return frappe.call({
 			method: "posnext.posnext.page.posnext.point_of_sale.get_past_order_list",
 			freeze: true,
-			args: { search_term, status },
+			args: filter,
 			callback: (response) => {
 				frappe.dom.unfreeze();
 				invoicess = response.message

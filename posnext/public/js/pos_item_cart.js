@@ -17,10 +17,11 @@ posnext.PointOfSale.ItemCart = class {
 		this.custom_use_discount_percentage = settings.custom_use_discount_percentage;
 		this.custom_use_discount_amount = settings.custom_use_discount_amount;
 		this.custom_use_additional_discount_amount = settings.custom_use_additional_discount_amount;
-		this.custom_show_incoming_rate = settings.custom_show_incoming_rate;
+		this.custom_show_incoming_rate = settings.custom_show_incoming_rate && settings.custom_edit_rate_and_uom;
 		this.custom_show_last_customer_rate = settings.custom_show_last_customer_rate;
 		// this.custom_edit_uom = settings.custom_edit_uom;
 		this.settings = settings;
+		this.warehouse = settings.warehouse;
 		this.init_component();
 	}
 
@@ -1094,7 +1095,7 @@ this.highlight_checkout_btn(true);
 				this[item_data.item_code + "_discount_amount"].set_value(item_data.discount_amount)
 			}
 			if(me.custom_show_incoming_rate){
-				this[item_data.item_code + "_incoming_rate"].set_value(item_data.valuation_rate)
+				this[item_data.item_code + "_incoming_rate"].set_value(item_data.custom_valuation_rate);
 			}
 			if(me.custom_show_last_customer_rate){
 				frappe.xcall("posnext.posnext.page.posnext.point_of_sale.get_lcr", {

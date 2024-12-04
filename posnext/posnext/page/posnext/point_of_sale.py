@@ -124,13 +124,14 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 		bin_join_condition = (
 			"AND bin.warehouse = %(warehouse)s AND bin.item_code = item.name AND bin.actual_qty > 0"
 		)
-	if custom_show_last_incoming_rate:
-		if not bin_join_selection:
-			bin_join_selection = ", `tabBin` bin"
-		bin_valuation_rate = "bin.valuation_rate,"
-		bin_join_condition_valuation = (
-			"AND bin.warehouse = %(warehouse)s AND bin.item_code = item.name"
-		)
+
+	if not bin_join_selection:
+		bin_join_selection = ", `tabBin` bin"
+	bin_valuation_rate = "bin.valuation_rate,"
+	
+	bin_join_condition_valuation = (
+		"AND bin.warehouse = %(warehouse)s AND bin.item_code = item.name"
+	)
 
 	items_data = frappe.db.sql(
 		"""
@@ -322,28 +323,39 @@ def create_opening_voucher(pos_profile, company, balance_details):
 
 
 @frappe.whitelist()
-def get_past_order_list(search_term, status, limit=20):
+def get_past_order_list(search_term, status, pos_profile=None, limit=20):
 	fields = ["name", "grand_total", "currency", "customer", "posting_time", "posting_date"]
 	invoice_list = []
+	if status == "Unpaid":
+		status = ["in", ["Unpaid", "Partly Paid", "Overdue"]]
 
 	if search_term and status:
+		fltr1 = {"customer": ["like", "%{}%".format(search_term)], "status": status}
+		if pos_profile:
+			fltr1 = {"customer": ["like", "%{}%".format(search_term)], "status": status, "pos_profile": pos_profile}
 		invoices_by_customer = frappe.db.get_all(
 			"Sales Invoice",
-			filters={"customer": ["like", "%{}%".format(search_term)], "status": status},
+			filters=fltr1,
 			fields=fields,
 			page_length=limit,
 		)
+		fltr2 = {"name": ["like", "%{}%".format(search_term)], "status": status}
+		if pos_profile:
+			fltr2 = {"name": ["like", "%{}%".format(search_term)], "status": status, "pos_profile": pos_profile}
 		invoices_by_name = frappe.db.get_all(
 			"Sales Invoice",
-			filters={"name": ["like", "%{}%".format(search_term)], "status": status},
+			filters=fltr2,
 			fields=fields,
 			page_length=limit,
 		)
 
 		invoice_list = invoices_by_customer + invoices_by_name
 	elif status:
+		fltr = {"status": status}
+		if pos_profile:
+			fltr = {"status": status, "pos_profile": pos_profile}
 		invoice_list = frappe.db.get_all(
-			"Sales Invoice", filters={"status": status}, fields=fields, page_length=limit
+			"Sales Invoice", filters=fltr, fields=fields, page_length=limit
 		)
 
 	return invoice_list
