@@ -41,6 +41,7 @@ def search_by_term(search_term,custom_show_alternative_item_for_pos_search, ware
 		"serial_no": serial_no,
 		"stock_uom": item_doc.stock_uom,
 		"uom": item_doc.stock_uom,
+		"item_uoms": frappe.db.get_all("UOM Conversion Detail", {"parent": item_doc.item_code}, ["uom"], pluck="uom")
 	}
 
 	if barcode:
@@ -127,7 +128,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 
 	if not bin_join_selection:
 		bin_join_selection = ", `tabBin` bin"
-	bin_valuation_rate = "bin.valuation_rate,"
+	bin_valuation_rate = "bin.valuation_rate, bin.valuation_rate as custom_valuation_rate,"
 	
 	bin_join_condition_valuation = (
 		"AND bin.warehouse = %(warehouse)s AND bin.item_code = item.name"
@@ -183,7 +184,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 			if len(rack) > 0:
 				item['rack'] = rack[0].rack_id
 		uoms = frappe.get_doc("Item", item.item_code).get("uoms", [])
-
+		item["custom_item_uoms"] = frappe.db.get_all("UOM Conversion Detail", {"parent": item.item_code}, ["uom"], pluck="uom")
 		item.actual_qty, _ = get_stock_availability(item.item_code, warehouse)
 		item.uom = item.stock_uom
 
@@ -217,6 +218,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 					"batch_no": price.batch_no,
 				}
 			)
+	print(result)
 	return {"items": result}
 
 

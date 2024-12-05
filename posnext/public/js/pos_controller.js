@@ -612,7 +612,6 @@ posnext.PointOfSale.Controller = class {
 	}
 
 	async on_cart_update(args) {
-		console.log("on_cart_update")
 		frappe.dom.freeze();
 		let item_row = undefined;
 		try {
@@ -643,7 +642,7 @@ posnext.PointOfSale.Controller = class {
 					return this.raise_customer_selection_alert();
 				}
 				frappe.flags.ignore_company_party_validation = true
-				const { item_code, batch_no, serial_no, rate, uom, valuation_rate } = item;
+				const { item_code, batch_no, serial_no, rate, uom, valuation_rate, custom_item_uoms } = item;
 				if (!item_code)
 					return;
 
@@ -665,14 +664,12 @@ posnext.PointOfSale.Controller = class {
 					// await this.check_stock_availability(item_row, qty_needed, this.frm.doc.set_warehouse);
 				}
 
-
 				await this.trigger_new_item_events(item_row);
 				item_row['rate'] = rate
 				item_row['valuation_rate'] = valuation_rate;
 				item_row['custom_valuation_rate'] = valuation_rate;
-
+				item_row['custom_item_uoms'] = custom_item_uoms;
 				// this.update_cart_html(item_row);
-				// console.log("HEEERE")
 				if (this.item_details.$component.is(':visible'))
 					this.edit_item_details_of(item_row);
 
@@ -684,14 +681,11 @@ posnext.PointOfSale.Controller = class {
 			console.log(error);
 		} finally {
 			frappe.dom.unfreeze();
+
 			var total_incoming_rate = 0
 			this.frm.doc.items.forEach(item => {
-				console.log(item)
-				console.log(item.qty)
 				total_incoming_rate += (parseFloat(item.valuation_rate) * item.qty)
 			});
-			console.log("TOTAAAAAAAAL RAAAAAAAAAAATE")
-			console.log(total_incoming_rate)
 			this.item_selector.update_total_incoming_rate(total_incoming_rate)
 
 			return item_row; // eslint-disable-line no-unsafe-finally
@@ -846,6 +840,12 @@ posnext.PointOfSale.Controller = class {
 				this.update_cart_html(current_item, true);
 				this.item_details.toggle_item_details_section(null);
 				frappe.dom.unfreeze();
+
+				var total_incoming_rate = 0
+				this.frm.doc.items.forEach(item => {
+					total_incoming_rate += (parseFloat(item.valuation_rate) * item.qty)
+				});
+				this.item_selector.update_total_incoming_rate(total_incoming_rate)
 			})
 			.catch(e => console.log(e));
 	}

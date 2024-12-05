@@ -967,21 +967,12 @@ this.highlight_checkout_btn(true);
 				render_input: true,
 			});
             var uoms = []
-                frappe.db.get_doc("Item",item_data.item_code).then(doc => {
-                    uoms = doc.uoms.map(item => item.uom);
-                })
+			if(item_data) uoms = item_data.custom_item_uoms.split(",") || [item_data.custom_item_uoms]
             this[item_data.item_code + "_uom"] = frappe.ui.form.make_control({
                     df: {
                         fieldname: "uom",
-                        fieldtype: "Link",
-                        options: "UOM",
-                        get_query:function () {
-                                return {
-                                    filters: {
-                                        name: ['in',uoms]
-                                    }
-                                }
-                        },
+                        fieldtype: "Select",
+                        options: uoms,
                         onchange: function() {
                             me.events.form_updated(item_data, "uom", this.value);
                         },
@@ -1075,12 +1066,10 @@ this.highlight_checkout_btn(true);
                 });
             remove_button.refresh(); // Make sure button is rendered
             $(remove_button.$input).on("click", function() {
-			console.log("REMOOOOOVE")
-
-							me.events.remove_item_from_cart(item_data)
-							me.prev_action = undefined;
-							me.toggle_item_highlight();
-							me.events.numpad_event(undefined, "remove");
+				me.events.remove_item_from_cart(item_data)
+				me.prev_action = undefined;
+				me.toggle_item_highlight();
+				me.events.numpad_event(undefined, "remove");
 
             });
             this[item_data.item_code + "_qty"].set_value(item_data.qty)
@@ -1101,7 +1090,6 @@ this.highlight_checkout_btn(true);
 				frappe.xcall("posnext.posnext.page.posnext.point_of_sale.get_lcr", {
 					"customer": me.customer_info.customer, "item_code": item_data.item_code
 				}).then(d=>{
-					console.log(d)
 					this[item_data.item_code + "_last_customer_rate"].set_value(d)
 				})
 			}

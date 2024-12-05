@@ -305,7 +305,8 @@ posnext.PointOfSale.ItemSelector = class {
 		return this.$cart_items_wrapper.find(item_selector);
 	}
 	render_cart_item(item_data) {
-
+		console.log("Rener cart item")
+		console.log(item_data)
 		const me = this;
 		const currency = me.events.get_frm().currency || me.currency;
 		this.$cart_items_wrapper.append(
@@ -315,7 +316,8 @@ posnext.PointOfSale.ItemSelector = class {
 			data-batch-no="${escape(item_data.batch_no)}" 
 			data-uom="${escape(item_data.uom)}"
 			data-rate="${escape(item_data.price_list_rate || 0)}"
-			data-valuation-rate="${escape(item_data.valuation_rate || 0)}"
+			data-valuation-rate="${escape(item_data.valuation_rate || item_data.custom_valuation_rate)}"
+			data-item-uoms="${item_data.custom_item_uoms}"
 			title="${item_data.item_name}"
 			data-row-name="${escape(item_data.item_code)}"></div>
 			<div class="seperator"></div>`
@@ -719,7 +721,8 @@ posnext.PointOfSale.ItemSelector = class {
 			let uom = unescape($item.attr('data-uom'));
 			let rate = unescape($item.attr('data-rate'));
 			let valuation_rate = unescape($item.attr('data-valuation-rate'));
-
+			console.log(unescape($item.attr('data-item-uoms')))
+			let custom_item_uoms = $item.attr('data-item-uoms')
 			// escape(undefined) returns "un	defined" then unescape returns "undefined"
 			batch_no = batch_no === "undefined" ? undefined : batch_no;
 			serial_no = serial_no === "undefined" ? undefined : serial_no;
@@ -728,7 +731,7 @@ posnext.PointOfSale.ItemSelector = class {
 			me.events.item_selected({
 				field: 'qty',
 				value: "+1",
-				item: { item_code, batch_no, serial_no, uom, rate ,valuation_rate}
+				item: { item_code, batch_no, serial_no, uom, rate ,valuation_rate, custom_item_uoms}
 			});
 			// me.search_field.set_focus();
 		});
