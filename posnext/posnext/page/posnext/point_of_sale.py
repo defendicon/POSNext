@@ -183,6 +183,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 			rack = frappe.db.sql(""" SELECT * FROM `tabLogical Rack` WHERE item=%s and pos_profile=%s """,(item.item_code,pos_profile),as_dict=1)
 			if len(rack) > 0:
 				item['rack'] = rack[0].rack_id
+				item['custom_logical_rack'] = rack[0].rack_id
 		uoms = frappe.get_doc("Item", item.item_code).get("uoms", [])
 		item["custom_item_uoms"] = frappe.db.get_all("UOM Conversion Detail", {"parent": item.item_code}, ["uom"], pluck="uom")
 		item.actual_qty, _ = get_stock_availability(item.item_code, warehouse)

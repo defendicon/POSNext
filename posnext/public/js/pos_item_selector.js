@@ -318,6 +318,7 @@ posnext.PointOfSale.ItemSelector = class {
 			data-rate="${escape(item_data.price_list_rate || 0)}"
 			data-valuation-rate="${escape(item_data.valuation_rate || item_data.custom_valuation_rate)}"
 			data-item-uoms="${item_data.custom_item_uoms}"
+			data-item-logical-rack="${item_data.custom_logical_rack}"
 			title="${item_data.item_name}"
 			data-row-name="${escape(item_data.item_code)}"></div>
 			<div class="seperator"></div>`
@@ -524,7 +525,9 @@ posnext.PointOfSale.ItemSelector = class {
 		$($img).parent().replaceWith(`<div class="item-display abbr">${item_abbr}</div>`);
 	}
 	update_total_incoming_rate(total_rate){
-		this.total_incoming_rate.set_value(total_rate)
+		if(this.total_incoming_rate){
+			this.total_incoming_rate.set_value(total_rate)
+		}
 	}
 	make_search_bar() {
 		const me = this;
@@ -721,8 +724,8 @@ posnext.PointOfSale.ItemSelector = class {
 			let uom = unescape($item.attr('data-uom'));
 			let rate = unescape($item.attr('data-rate'));
 			let valuation_rate = unescape($item.attr('data-valuation-rate'));
-			console.log(unescape($item.attr('data-item-uoms')))
-			let custom_item_uoms = $item.attr('data-item-uoms')
+			let custom_item_uoms = $item.attr('data-item-uoms');
+			let custom_logical_rack = $item.attr('data-item-logical-rack')
 			// escape(undefined) returns "un	defined" then unescape returns "undefined"
 			batch_no = batch_no === "undefined" ? undefined : batch_no;
 			serial_no = serial_no === "undefined" ? undefined : serial_no;
@@ -731,7 +734,7 @@ posnext.PointOfSale.ItemSelector = class {
 			me.events.item_selected({
 				field: 'qty',
 				value: "+1",
-				item: { item_code, batch_no, serial_no, uom, rate ,valuation_rate, custom_item_uoms}
+				item: { item_code, batch_no, serial_no, uom, rate ,valuation_rate, custom_item_uoms, custom_logical_rack}
 			});
 			// me.search_field.set_focus();
 		});
