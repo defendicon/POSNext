@@ -642,7 +642,7 @@ posnext.PointOfSale.Controller = class {
 					return this.raise_customer_selection_alert();
 				}
 				frappe.flags.ignore_company_party_validation = true
-				const { item_code, batch_no, serial_no, rate, uom, valuation_rate, custom_item_uoms } = item;
+				const { item_code, batch_no, serial_no, rate, uom, valuation_rate, custom_item_uoms, custom_logical_rack } = item;
 				if (!item_code)
 					return;
 
@@ -669,6 +669,7 @@ posnext.PointOfSale.Controller = class {
 				item_row['valuation_rate'] = valuation_rate;
 				item_row['custom_valuation_rate'] = valuation_rate;
 				item_row['custom_item_uoms'] = custom_item_uoms;
+				item_row['custom_logical_rack'] = custom_logical_rack;
 				// this.update_cart_html(item_row);
 				if (this.item_details.$component.is(':visible'))
 					this.edit_item_details_of(item_row);

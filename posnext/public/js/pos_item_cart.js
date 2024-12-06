@@ -19,6 +19,7 @@ posnext.PointOfSale.ItemCart = class {
 		this.custom_use_additional_discount_amount = settings.custom_use_additional_discount_amount;
 		this.custom_show_incoming_rate = settings.custom_show_incoming_rate && settings.custom_edit_rate_and_uom;
 		this.custom_show_last_customer_rate = settings.custom_show_last_customer_rate;
+		this.custom_show_logical_rack_in_cart = settings.custom_show_logical_rack_in_cart && settings.custom_edit_rate_and_uom;
 		// this.custom_edit_uom = settings.custom_edit_uom;
 		this.settings = settings;
 		this.warehouse = settings.warehouse;
@@ -87,6 +88,9 @@ posnext.PointOfSale.ItemCart = class {
 			}
 			if(this.custom_show_incoming_rate){
 				html += `<div class="incoming-rate-header" style="flex: 1">${__('Inc.Rate')}</div>`
+			}
+			if(this.custom_show_logical_rack_in_cart){
+				html += `<div class="incoming-rate-header" style="flex: 1">${__('Rack')}</div>`
 			}
 			if(this.custom_show_last_customer_rate){
 				html += `<div class="last-customer-rate-header" style="flex: 1">${__('LC Rate')}</div>`
@@ -1036,6 +1040,17 @@ this.highlight_checkout_btn(true);
 					render_input: true,
 				});
 			}
+			if(this.custom_show_logical_rack_in_cart){
+				this[item_data.item_code + "_logical_rack"] = frappe.ui.form.make_control({
+					df: {
+						fieldname: "logical_rack",
+						fieldtype: "Data",
+						read_only: 1
+					},
+					parent: $item_to_update.find(`.item-logical-rack`),
+					render_input: true,
+				});
+			}
 			if(this.custom_show_last_customer_rate){
 				this[item_data.item_code + "_last_customer_rate"] = frappe.ui.form.make_control({
 					df: {
@@ -1090,6 +1105,9 @@ this.highlight_checkout_btn(true);
 			if(me.custom_show_incoming_rate){
 				this[item_data.item_code + "_incoming_rate"].set_value(item_data.custom_valuation_rate);
 			}
+			if(me.custom_show_logical_rack_in_cart){
+				this[item_data.item_code + "_logical_rack"].set_value(item_data.custom_logical_rack);
+			}
 			if(me.custom_show_last_customer_rate){
 				frappe.xcall("posnext.posnext.page.posnext.point_of_sale.get_lcr", {
 					"customer": me.customer_info.customer, "item_code": item_data.item_code
@@ -1137,6 +1155,9 @@ this.highlight_checkout_btn(true);
 					if(me.custom_show_incoming_rate){
 						html += `<div class="item-incoming-rate" style="flex: 1"></div>`
 					}
+					if(me.custom_show_logical_rack_in_cart){
+						html += `<div class="item-logical-rack" style="flex: 1"></div>`
+					}
 					if(me.custom_show_last_customer_rate){
 						html += `<div class="item-last-customer-rate" style="flex: 1"></div>`
 					}
@@ -1159,6 +1180,9 @@ this.highlight_checkout_btn(true);
 					}
 					if(me.custom_show_incoming_rate){
 						html += `<div class="item-incoming-rate" style="flex: 1"></div>`
+					}
+					if(me.custom_show_logical_rack_in_cart){
+						html += `<div class="item-logical-rack" style="flex: 1"></div>`
 					}
 					if(me.custom_show_last_customer_rate){
 						html += `<div class="item-last-customer-rate" style="flex: 1"></div>`
