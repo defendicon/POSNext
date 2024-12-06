@@ -967,7 +967,11 @@ this.highlight_checkout_btn(true);
 				render_input: true,
 			});
             var uoms = []
-			if(item_data.custom_item_uoms) uoms = item_data.custom_item_uoms.split(",") || [item_data.custom_item_uoms]
+			if(item_data.custom_item_uoms){
+				uoms = item_data.custom_item_uoms.split(",") || [item_data.custom_item_uoms]
+			}else if(item_data.uom){
+				uoms = [item_data.uom];
+			}
             this[item_data.item_code + "_uom"] = frappe.ui.form.make_control({
                     df: {
                         fieldname: "uom",
