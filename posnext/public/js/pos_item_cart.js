@@ -971,11 +971,13 @@ this.highlight_checkout_btn(true);
 				render_input: true,
 			});
             var uoms = []
+			console.log("custom_item_uoms")
+			console.log(item_data.custom_item_uoms)
+			if(!item_data.custom_item_uoms){
+				console.log("No uoms")
+			}
 			if(item_data.custom_item_uoms){
 				uoms = item_data.custom_item_uoms.split(",")
-				if(!uoms){
-					console.log("No uoms")
-				}
 			}else if(item_data.uom){
 				uoms = [item_data.uom];
 			}
@@ -1099,7 +1101,7 @@ this.highlight_checkout_btn(true);
 			this[item_data.item_code + "_uom"].df.options = uoms;
             this[item_data.item_code + "_uom"].set_value(item_data.uom)
 			this[item_data.item_code + "_uom"].refresh()
-			console.log(this[item_data.item_code + "_uom"].df)
+			// console.log(this[item_data.item_code + "_uom"].df)
 			
             this[item_data.item_code + "_amount"].set_value(parseFloat(item_data.amount).toFixed(2))
             this[item_data.item_code + "_rate"].set_value(parseFloat(item_data.rate).toFixed(2))
@@ -1123,6 +1125,14 @@ this.highlight_checkout_btn(true);
 					this[item_data.item_code + "_last_customer_rate"].set_value(d)
 				})
 			}
+			frappe.xcall("posnext.posnext.page.posnext.point_of_sale.get_uoms", {
+				"item_code": item_data.item_code
+			}).then(d=>{
+				this[item_data.item_code + "_uom"].df.options = d
+				// this[item_data.item_code + "_uom"].set_value(d)
+				this[item_data.item_code + "_uom"].refresh()
+				console.log(this[item_data.item_code + "_uom"].df)
+			})
 		}
 
 		set_dynamic_rate_header_width();
