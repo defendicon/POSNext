@@ -973,21 +973,24 @@ this.highlight_checkout_btn(true);
             var uoms = []
 			if(item_data.custom_item_uoms){
 				uoms = item_data.custom_item_uoms.split(",")
+				if(!uoms){
+					console.log("No uoms")
+				}
 			}else if(item_data.uom){
 				uoms = [item_data.uom];
 			}
-            this[item_data.item_code + "_uom"] = frappe.ui.form.make_control({
-                    df: {
-                        fieldname: "uom",
-                        fieldtype: "Select",
-                        options: uoms,
-                        onchange: function() {
-                            me.events.form_updated(item_data, "uom", this.value);
-                        },
-                    },
-                    parent: $item_to_update.find(`.item-uom`),
-                    render_input: true,
-                });
+			this[item_data.item_code + "_uom"] = frappe.ui.form.make_control({
+				df: {
+					fieldname: "uom",
+					fieldtype: "Select",
+					// options: uoms,
+					onchange: function() {
+						me.events.form_updated(item_data, "uom", this.value);
+					},
+				},
+				parent: $item_to_update.find(`.item-uom`),
+				render_input: true,
+			});
             this[item_data.item_code + "_rate"] = frappe.ui.form.make_control({
                     df: {
                         fieldname: "rate",
@@ -1092,9 +1095,12 @@ this.highlight_checkout_btn(true);
 
             });
             this[item_data.item_code + "_qty"].set_value(item_data.qty)
-            this[item_data.item_code + "_uom"].set_value(item_data.uom)
+			
 			this[item_data.item_code + "_uom"].df.options = uoms;
+            this[item_data.item_code + "_uom"].set_value(item_data.uom)
 			this[item_data.item_code + "_uom"].refresh()
+			console.log(this[item_data.item_code + "_uom"].df)
+			
             this[item_data.item_code + "_amount"].set_value(parseFloat(item_data.amount).toFixed(2))
             this[item_data.item_code + "_rate"].set_value(parseFloat(item_data.rate).toFixed(2))
 

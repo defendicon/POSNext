@@ -188,7 +188,6 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 		item["custom_item_uoms"] = frappe.db.get_all("UOM Conversion Detail", {"parent": item.item_code}, ["uom"], pluck="uom")
 		item.actual_qty, _ = get_stock_availability(item.item_code, warehouse)
 		item.uom = item.stock_uom
-
 		item_price = frappe.get_all(
 			"Item Price",
 			fields=["price_list_rate", "currency", "uom", "batch_no"],
@@ -219,7 +218,6 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 					"batch_no": price.batch_no,
 				}
 			)
-	print(result)
 	return {"items": result}
 
 
@@ -474,3 +472,11 @@ def get_lcr(customer, item_code):
 		return d[0].rate
 	else:
 		return 0
+
+@frappe.whitelist()
+def get_uoms(item_code):
+	d = frappe.db.get_all("UOM Conversion Detail", {"parent": item_code}, ["uom"], pluck="uom")
+	if d:
+		return d
+	else:
+		return []
