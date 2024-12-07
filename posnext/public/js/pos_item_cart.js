@@ -972,7 +972,7 @@ this.highlight_checkout_btn(true);
 			});
             var uoms = []
 			if(item_data.custom_item_uoms){
-				uoms = item_data.custom_item_uoms.split(",") || [item_data.custom_item_uoms]
+				uoms = item_data.custom_item_uoms.split(",")
 			}else if(item_data.uom){
 				uoms = [item_data.uom];
 			}
@@ -1093,6 +1093,8 @@ this.highlight_checkout_btn(true);
             });
             this[item_data.item_code + "_qty"].set_value(item_data.qty)
             this[item_data.item_code + "_uom"].set_value(item_data.uom)
+			this[item_data.item_code + "_uom"].df.options = uoms;
+			this[item_data.item_code + "_uom"].refresh()
             this[item_data.item_code + "_amount"].set_value(parseFloat(item_data.amount).toFixed(2))
             this[item_data.item_code + "_rate"].set_value(parseFloat(item_data.rate).toFixed(2))
 
