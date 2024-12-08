@@ -20,6 +20,7 @@ posnext.PointOfSale.ItemCart = class {
 		this.custom_show_incoming_rate = settings.custom_show_incoming_rate && settings.custom_edit_rate_and_uom;
 		this.custom_show_last_customer_rate = settings.custom_show_last_customer_rate;
 		this.custom_show_logical_rack_in_cart = settings.custom_show_logical_rack_in_cart && settings.custom_edit_rate_and_uom;
+		this.custom_show_uom_in_cart = settings.custom_show_uom_in_cart && settings.custom_edit_rate_and_uom;
 		// this.custom_edit_uom = settings.custom_edit_uom;
 		this.settings = settings;
 		this.warehouse = settings.warehouse;
@@ -75,10 +76,12 @@ posnext.PointOfSale.ItemCart = class {
 					<div class="cart-header">
 						<div class="name-header" style="flex:3">${__('Item')}</div>
 						<div class="qty-header" style="flex: 1">${__('Qty')}</div>
-						<div class="uom-header" style="flex: 1">${__('UOM')}</div>
 						`
+			if(this.custom_show_uom_in_cart){
+				html += `<div class="uom-header" style="flex: 1">${__('UOM')}</div>`
+			}
 			if(this.custom_edit_rate){
-			html += `<div class="rate-header" style="flex: 1">${__('Rate')}</div>`
+				html += `<div class="rate-header" style="flex: 1">${__('Rate')}</div>`
 			}
 			if(this.custom_use_discount_percentage){
 				html += `<div class="discount-perc-header" style="flex: 1">${__('Disc%')}</div>`
@@ -953,9 +956,6 @@ this.highlight_checkout_btn(true);
 			</div>
 			${get_rate_discount_html()}`
 
-
-
-
 		$item_to_update.html(item_html)
 		if(me.custom_edit_rate){
 		    this[item_data.item_code + "_qty"] = frappe.ui.form.make_control({
@@ -970,33 +970,29 @@ this.highlight_checkout_btn(true);
 				parent: $item_to_update.find(`.item-qty`),
 				render_input: true,
 			});
-            var uoms = []
-			console.log("custom_item_uoms")
-			console.log(item_data.custom_item_uoms)
-			if(!item_data.custom_item_uoms){
-				console.log("No uoms")
-			}
+            var uoms = [];
 			if(item_data.custom_item_uoms){
-				uoms = item_data.custom_item_uoms.split(",")
+				uoms = item_data.custom_item_uoms.split(",");
 			}else if(item_data.uom){
 				uoms = [item_data.uom];
 			}
-			this[item_data.item_code + "_uom"] = frappe.ui.form.make_control({
-				df: {
-					fieldname: "uom",
-					fieldtype: "Select",
-					// options: uoms,
-					onchange: function() {
-						me.events.form_updated(item_data, "uom", this.value);
+			if(me.custom_show_uom_in_cart){
+				this[item_data.item_code + "_uom"] = frappe.ui.form.make_control({
+					df: {
+						fieldname: "uom",
+						fieldtype: "Select",
+						onchange: function() {
+							me.events.form_updated(item_data, "uom", this.value);
+						},
 					},
-				},
-				parent: $item_to_update.find(`.item-uom`),
-				render_input: true,
-			});
+					parent: $item_to_update.find(`.item-uom`),
+					render_input: true,
+				});
+			}
             this[item_data.item_code + "_rate"] = frappe.ui.form.make_control({
                     df: {
                         fieldname: "rate",
-                        fieldtype: "Data",
+                        fieldtype: "Currency",
 						read_only: !me.allow_rate_change,
 						onchange: function() {
 							me.events.form_updated(item_data, "rate", this.value);
@@ -1010,7 +1006,7 @@ this.highlight_checkout_btn(true);
             	this[item_data.item_code + "_discount"] = frappe.ui.form.make_control({
                     df: {
                         fieldname: "discount",
-                        fieldtype: "Currency",
+                        fieldtype: "Float",
 						onchange: function() {
 							me.events.form_updated(item_data, "discount_percentage", this.value);
 						},
@@ -1038,7 +1034,7 @@ this.highlight_checkout_btn(true);
 				this[item_data.item_code + "_incoming_rate"] = frappe.ui.form.make_control({
 					df: {
 						fieldname: "incoming_rate",
-						fieldtype: "Data",
+						fieldtype: "Float",
 						read_only: 1
 					},
 					parent: $item_to_update.find(`.item-incoming-rate`),
@@ -1060,7 +1056,7 @@ this.highlight_checkout_btn(true);
 				this[item_data.item_code + "_last_customer_rate"] = frappe.ui.form.make_control({
 					df: {
 						fieldname: "last_customer_rate",
-						fieldtype: "Data",
+						fieldtype: "Float",
 						read_only: 1
 					},
 					parent: $item_to_update.find(`.item-last-customer-rate`),
@@ -1070,7 +1066,7 @@ this.highlight_checkout_btn(true);
 			this[item_data.item_code + "_amount"] = frappe.ui.form.make_control({
                     df: {
                         fieldname: "amount",
-                        fieldtype: "Data",
+                        fieldtype: "Float",
 						read_only: 1
 					},
                     parent: $item_to_update.find(`.item-rate-amount`),
@@ -1097,11 +1093,11 @@ this.highlight_checkout_btn(true);
 
             });
             this[item_data.item_code + "_qty"].set_value(item_data.qty)
-			
-			this[item_data.item_code + "_uom"].df.options = uoms;
-            this[item_data.item_code + "_uom"].set_value(item_data.uom)
-			this[item_data.item_code + "_uom"].refresh()
-			// console.log(this[item_data.item_code + "_uom"].df)
+			if(me.custom_show_uom_in_cart){
+				this[item_data.item_code + "_uom"].df.options = uoms;
+				this[item_data.item_code + "_uom"].set_value(item_data.uom);
+				this[item_data.item_code + "_uom"].refresh();
+			}
 			
             this[item_data.item_code + "_amount"].set_value(parseFloat(item_data.amount).toFixed(2))
             this[item_data.item_code + "_rate"].set_value(parseFloat(item_data.rate).toFixed(2))
@@ -1125,14 +1121,14 @@ this.highlight_checkout_btn(true);
 					this[item_data.item_code + "_last_customer_rate"].set_value(d)
 				})
 			}
-			frappe.xcall("posnext.posnext.page.posnext.point_of_sale.get_uoms", {
-				"item_code": item_data.item_code
-			}).then(d=>{
-				this[item_data.item_code + "_uom"].df.options = d
-				// this[item_data.item_code + "_uom"].set_value(d)
-				this[item_data.item_code + "_uom"].refresh()
-				console.log(this[item_data.item_code + "_uom"].df)
-			})
+			if(me.custom_show_uom_in_cart){
+				frappe.xcall("posnext.posnext.page.posnext.point_of_sale.get_uoms", {
+					"item_code": item_data.item_code
+				}).then(d=>{
+					this[item_data.item_code + "_uom"].df.options = d;
+					this[item_data.item_code + "_uom"].refresh();
+				})
+			}
 		}
 
 		set_dynamic_rate_header_width();
@@ -1159,11 +1155,12 @@ this.highlight_checkout_btn(true);
 				if (item_data.rate && item_data.amount && item_data.rate !== item_data.amount) {
 					var html = `
                         <div class="item-qty-rate" style="flex: 6">
-                            <div class="item-qty" style="flex: 1"></div>
-                            <div class="item-uom" style="flex: 1;text-align: left"></div>
-                            <div class="item-rate" style="flex: 1;"></div>`
+                        <div class="item-qty" style="flex: 1"></div>`;
 
-
+					if(me.custom_show_uom_in_cart){
+						html += `<div class="item-uom" style="flex: 1;text-align: left"></div>`;
+					}
+					html += `<div class="item-rate" style="flex: 1;"></div>`;
 					if(me.custom_use_discount_percentage){
 						html += `<div class="item-rate-discount" style="flex: 1;text-align: left"></div>`
 					}
@@ -1184,12 +1181,13 @@ this.highlight_checkout_btn(true);
                         </div>`
                     return html
                 } else {
-					var html = `<div class="item-qty-rate" style="flex: 6">
-                            <div class="item-qty" style="flex: 1"></div>
-                            <div class="item-uom" style="flex: 1;text-align: left"></div>
-                             <div class="item-rate" style="flex: 1"></div>`
-
-
+					var html = `
+                        <div class="item-qty-rate" style="flex: 6">
+                        <div class="item-qty" style="flex: 1"></div>`;
+					if(me.custom_show_uom_in_cart){
+						html += `<div class="item-uom" style="flex: 1;text-align: left"></div>`;
+					}
+					html += `<div class="item-rate" style="flex: 1;"></div>`;
 					if(me.custom_use_discount_percentage){
 						html += `<div class="item-rate-discount" style="flex: 1;text-align: left"></div>`
 					}

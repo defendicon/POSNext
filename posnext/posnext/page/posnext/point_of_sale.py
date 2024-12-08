@@ -97,8 +97,8 @@ def search_by_term(search_term,custom_show_alternative_item_for_pos_search, ware
 
 @frappe.whitelist()
 def get_items(start, page_length, price_list, item_group, pos_profile, search_term=""):
-	warehouse, hide_unavailable_items,custom_show_last_incoming_rate, custom_show_alternative_item_for_pos_search,custom_show_logical_rack = frappe.db.get_value(
-		"POS Profile", pos_profile, ["warehouse", "hide_unavailable_items","custom_show_last_incoming_rate","custom_show_alternative_item_for_pos_search","custom_show_logical_rack"]
+	warehouse, hide_unavailable_items,custom_show_last_incoming_rate, custom_show_alternative_item_for_pos_search,custom_show_logical_rack, custom_skip_stock_transaction_validation = frappe.db.get_value(
+		"POS Profile", pos_profile, ["warehouse", "hide_unavailable_items","custom_show_last_incoming_rate","custom_show_alternative_item_for_pos_search","custom_show_logical_rack", "custom_skip_stock_transaction_validation"]
 	)
 
 	result = []
@@ -120,19 +120,20 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 	lft, rgt = frappe.db.get_value("Item Group", item_group, ["lft", "rgt"])
 
 	bin_join_selection, bin_join_condition,bin_valuation_rate,bin_join_condition_valuation = "", "","",""
-	if hide_unavailable_items:
-		bin_join_selection = ", `tabBin` bin"
-		bin_join_condition = (
-			"AND bin.warehouse = %(warehouse)s AND bin.item_code = item.name AND bin.actual_qty > 0"
-		)
+	if not custom_skip_stock_transaction_validation:
+		if hide_unavailable_items:
+			bin_join_selection = ", `tabBin` bin"
+			bin_join_condition = (
+				"AND bin.warehouse = %(warehouse)s AND bin.item_code = item.name AND bin.actual_qty > 0"
+			)
 
-	if not bin_join_selection:
-		bin_join_selection = ", `tabBin` bin"
-	bin_valuation_rate = "bin.valuation_rate, bin.valuation_rate as custom_valuation_rate,"
+		if not bin_join_selection:
+			bin_join_selection = ", `tabBin` bin"
+		bin_valuation_rate = "bin.valuation_rate, bin.valuation_rate as custom_valuation_rate,"
 	
-	bin_join_condition_valuation = (
-		"AND bin.warehouse = %(warehouse)s AND bin.item_code = item.name"
-	)
+		bin_join_condition_valuation = (
+			"AND bin.warehouse = %(warehouse)s AND bin.item_code = item.name"
+		)
 
 	items_data = frappe.db.sql(
 		"""
