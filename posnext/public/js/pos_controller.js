@@ -612,7 +612,7 @@ posnext.PointOfSale.Controller = class {
 	}
 
 	async on_cart_update(args) {
-		frappe.dom.freeze();
+		// frappe.dom.freeze();
 		let item_row = undefined;
 		try {
 			let { field, value, item } = args;
@@ -659,10 +659,10 @@ posnext.PointOfSale.Controller = class {
 					new_item['qty'] = value.split(`\n`).length || 0;
 				item_row = this.frm.add_child('items', new_item);
 
-				if (field === 'qty' && value !== 0 && !this.allow_negative_stock) {
-					const qty_needed = value * item_row.conversion_factor;
+				// if (field === 'qty' && value !== 0 && !this.allow_negative_stock) {
+					// const qty_needed = value * item_row.conversion_factor;
 					// await this.check_stock_availability(item_row, qty_needed, this.frm.doc.set_warehouse);
-				}
+				// }
 
 				await this.trigger_new_item_events(item_row);
 				item_row['rate'] = rate
@@ -681,7 +681,7 @@ posnext.PointOfSale.Controller = class {
 		} catch (error) {
 			console.log(error);
 		} finally {
-			frappe.dom.unfreeze();
+			// frappe.dom.unfreeze();
 
 			var total_incoming_rate = 0
 			this.frm.doc.items.forEach(item => {
