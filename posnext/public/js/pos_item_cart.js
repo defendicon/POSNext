@@ -729,8 +729,6 @@ this.highlight_checkout_btn(true);
 						setTimeout(()=>{
 							if (flt(this.value) != 0) {
 								frappe.model.set_value(frm.doc.doctype, frm.doc.name, 'additional_discount_percentage', flt(this.value));
-								console.log("this.custom_use_additional_discount_amount")
-								console.log(me.custom_use_additional_discount_amount)
 								me.hide_discount_control(this.value);
 								
 							} else {
