@@ -994,7 +994,7 @@ this.highlight_checkout_btn(true);
             this[item_data.item_code + "_rate"] = frappe.ui.form.make_control({
                     df: {
                         fieldname: "rate",
-                        fieldtype: "Currency",
+                        fieldtype: "Float",
 						read_only: !me.allow_rate_change,
 						onchange: function() {
 							me.events.form_updated(item_data, "rate", this.value);
