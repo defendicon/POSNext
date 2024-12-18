@@ -311,7 +311,7 @@ class StockBalanceReport:
 				item_table.item_group,
 				item_table.stock_uom,
 				item_table.item_name,
-				logical_rack.name.as_("rack")
+				logical_rack.rack_id.as_("rack")
 			)
 			.where((sle.docstatus < 2) & (sle.is_cancelled == 0))
 			.where(logical_rack.item == sle.item_code)
@@ -405,8 +405,7 @@ class StockBalanceReport:
 			{
 				"label": _("Rack"),
 				"fieldname": "rack",
-				"fieldtype": "Link",
-				"options": "Logical Rack",
+				"fieldtype": "Data",
 				"width": 100,
 			},
 		]
