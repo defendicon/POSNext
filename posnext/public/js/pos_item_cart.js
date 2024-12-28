@@ -1,8 +1,6 @@
 frappe.provide('posnext.PointOfSale');
 posnext.PointOfSale.ItemCart = class {
 	constructor({ wrapper, events, settings }) {
-		console.log("INIT")
-		console.log(events)
 		this.wrapper = wrapper;
 		this.events = events;
 		this.customer_info = undefined;
