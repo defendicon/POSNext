@@ -2,6 +2,7 @@ frappe.provide('posnext.PointOfSale');
 posnext.PointOfSale.ItemCart = class {
 	constructor({ wrapper, events, settings }) {
 		console.log("INIT")
+		console.log(events)
 		this.wrapper = wrapper;
 		this.events = events;
 		this.customer_info = undefined;
@@ -994,7 +995,7 @@ this.highlight_checkout_btn(true);
             this[item_data.item_code + "_rate"] = frappe.ui.form.make_control({
                     df: {
                         fieldname: "rate",
-                        fieldtype: "Data",
+                        fieldtype: "Float",
 						read_only: !me.allow_rate_change,
 						onchange: function() {
 							me.events.form_updated(item_data, "rate", this.value);
@@ -1101,8 +1102,8 @@ this.highlight_checkout_btn(true);
 				this[item_data.item_code + "_uom"].refresh();
 			}
 			
-            this[item_data.item_code + "_amount"].set_value(parseFloat(item_data.amount).toFixed(2))
-            this[item_data.item_code + "_rate"].set_value(parseFloat(item_data.rate).toFixed(2))
+            this[item_data.item_code + "_amount"].set_value(parseFloat(item_data.amount).toFixed(3))
+            this[item_data.item_code + "_rate"].set_value(parseFloat(item_data.rate).toFixed(3))
 
 			if(me.custom_use_discount_percentage){
 				this[item_data.item_code + "_discount"].set_value(item_data.discount_percentage)
