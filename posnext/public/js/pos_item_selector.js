@@ -716,7 +716,7 @@ posnext.PointOfSale.ItemSelector = class {
 
 
 		this.$component.on('click', '.item-wrapper', function() {
-			console.log("OnClick Item Wrapper")
+			console.log("Item Selected")
 			const $item = $(this);
 			const item_code = unescape($item.attr('data-item-code'));
 			let batch_no = unescape($item.attr('data-batch-no'));
