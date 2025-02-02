@@ -1118,11 +1118,13 @@ this.highlight_checkout_btn(true);
 				this[item_data.item_code + "_logical_rack"].set_value(item_data.custom_logical_rack);
 			}
 			if(me.custom_show_last_customer_rate){
-				frappe.xcall("posnext.posnext.page.posnext.point_of_sale.get_lcr", {
-					"customer": me.customer_info.customer, "item_code": item_data.item_code
-				}).then(d=>{
-					this[item_data.item_code + "_last_customer_rate"].set_value(d)
-				})
+				if (me.customer_info.customer){
+					frappe.xcall("posnext.posnext.page.posnext.point_of_sale.get_lcr", {
+						"customer": me.customer_info.customer, "item_code": item_data.item_code
+					}).then(d=>{
+						this[item_data.item_code + "_last_customer_rate"].set_value(d)
+					})
+				}
 			}
 			if(me.custom_show_uom_in_cart){
 				frappe.xcall("posnext.posnext.page.posnext.point_of_sale.get_uoms", {
