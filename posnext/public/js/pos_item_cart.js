@@ -1659,6 +1659,7 @@ this.highlight_checkout_btn(true);
 	}
 
 	load_invoice() {
+		console.log("Load invoice")
 		const frm = this.events.get_frm();
 
 		this.attach_refresh_field_event(frm);
@@ -1666,50 +1667,50 @@ this.highlight_checkout_btn(true);
 		this.fetch_customer_details(frm.doc.customer).then(() => {
 			this.events.customer_details_updated(this.customer_info);
 			this.update_customer_section();
+		
+			this.$cart_items_wrapper.html('');
+			if (frm.doc.items.length) {
+				frm.doc.items.forEach(item => {
+					this.update_item_html(item);
+				});
+			} else {
+				this.make_no_items_placeholder();
+				this.highlight_checkout_btn(true);
+			}
+
+			this.update_totals_section(frm);
+
+			if(frm.doc.docstatus === 1) {
+				this.$totals_section.find('.checkout-btn').css('display', 'none');
+				this.$totals_section.find('.checkout-btn-held').css('display', 'none');
+				if(this.show_order_list_button){
+					this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
+				} else {
+					this.$totals_section.find('.checkout-btn-order').css('display', 'none');
+				}
+				this.$totals_section.find('.edit-cart-btn').css('display', 'none');
+			} else {
+				if(this.show_checkout_button) {
+					this.$totals_section.find('.checkout-btn').css('display', 'flex');
+				} else {
+									this.$totals_section.find('.checkout-btn').css('display', 'none');
+
+				}
+				if(this.show_held_button){
+					this.$totals_section.find('.checkout-btn-held').css('display', 'flex');
+				} else {
+				this.$totals_section.find('.checkout-btn-held').css('display', 'none');
+				}
+				if(this.show_order_list_button){
+					this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
+				} else {
+					this.$totals_section.find('.checkout-btn-order').css('display', 'none');
+				}
+				this.$totals_section.find('.edit-cart-btn').css('display', 'none');
+			}
+
+			this.toggle_component(true);
 		});
-
-		this.$cart_items_wrapper.html('');
-		if (frm.doc.items.length) {
-			frm.doc.items.forEach(item => {
-				this.update_item_html(item);
-			});
-		} else {
-			this.make_no_items_placeholder();
-			this.highlight_checkout_btn(true);
-		}
-
-		this.update_totals_section(frm);
-
-		if(frm.doc.docstatus === 1) {
-			this.$totals_section.find('.checkout-btn').css('display', 'none');
-			this.$totals_section.find('.checkout-btn-held').css('display', 'none');
-			if(this.show_order_list_button){
-				this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
-			} else {
-				this.$totals_section.find('.checkout-btn-order').css('display', 'none');
-			}
-			this.$totals_section.find('.edit-cart-btn').css('display', 'none');
-		} else {
-			if(this.show_checkout_button) {
-                this.$totals_section.find('.checkout-btn').css('display', 'flex');
-            } else {
-				                this.$totals_section.find('.checkout-btn').css('display', 'none');
-
-			}
-			if(this.show_held_button){
-				this.$totals_section.find('.checkout-btn-held').css('display', 'flex');
-			} else {
-			this.$totals_section.find('.checkout-btn-held').css('display', 'none');
-			}
-			if(this.show_order_list_button){
-				this.$totals_section.find('.checkout-btn-order').css('display', 'flex');
-			} else {
-				this.$totals_section.find('.checkout-btn-order').css('display', 'none');
-			}
-			this.$totals_section.find('.edit-cart-btn').css('display', 'none');
-		}
-
-		this.toggle_component(true);
 	}
 
 	toggle_component(show) {

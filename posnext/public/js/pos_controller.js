@@ -613,6 +613,7 @@ posnext.PointOfSale.Controller = class {
 
 	async on_cart_update(args) {
 		// frappe.dom.freeze();
+		console.log("Updating Cart")
 		let item_row = undefined;
 		try {
 			let { field, value, item } = args;
