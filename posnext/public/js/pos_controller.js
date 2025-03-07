@@ -225,7 +225,7 @@ posnext.PointOfSale.Controller = class {
 		}).then(() => {
 			frappe.run_serially([
 				() => frappe.dom.freeze(),
-				() => this.make_new_invoice(true),
+				() => this.make_new_invoice(false),
 				() => frappe.dom.unfreeze()
 
 
