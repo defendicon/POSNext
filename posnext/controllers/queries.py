@@ -49,3 +49,23 @@ def get_fields(doctype, fields=None):
 		fields.insert(1, meta.title_field.strip())
 
 	return unique(fields)
+
+@frappe.whitelist()
+def get_ledger_balance(customer):
+    if not customer:
+        frappe.throw("Customer ID is required.")
+
+    # Fetch receivable balance for the customer
+    balance = frappe.db.sql("""
+        SELECT SUM(debit - credit) AS receivable
+        FROM `tabGL Entry`
+        WHERE party_type = 'Customer'
+        AND party = %s
+        AND account IN (
+            SELECT name FROM `tabAccount` WHERE account_type = 'Receivable'
+        )
+        AND is_cancelled = 0
+    """, (customer,), as_dict=True)
+
+    # Return the balance
+    return balance[0].get("receivable", 0) if balance else 0
