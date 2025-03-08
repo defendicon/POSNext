@@ -45,8 +45,10 @@ posnext.PointOfSale.ItemSelector = class {
 	prepare_dom() {
 		var cardlist = ``
 		if(!this.show_only_list_view && !this.show_only_card_view){
-			cardlist = `<div class="list-view"><a class="list-span">List</a></div>
-			<div class="card-view"><a class="card-span">Card</a></div>`
+			cardlist = `
+			<div class="list-view" style="grid-column: span 1 / span 2!important;"><a class="list-span">List</a></div>
+			<div class="card-view" style="grid-column: span 1 / span 2!important;"><a class="card-span">Card</a></div>
+			`
 		}
 
 		if(view === "Card" && !this.show_only_list_view){
@@ -55,20 +57,17 @@ posnext.PointOfSale.ItemSelector = class {
 				tir = `<div class="total-incoming-rate" style="margin-left: 10px;grid-column: span 2 / span 2"></div>`
 			}
 			this.wrapper.append(
-				`<div class="items-container">
-					<section class="items-selector" id="card-view-section">
-						<div class="filter-section">` + cardlist + `
-							
-							<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
-							<div class="search-field" style="grid-column: span 4 / span 4"></div>
-							<!--<div class="item-code-search-field" style="grid-column: span 2 / span 2"></div>-->
-							<div class="item-group-field" style="grid-column: span 2 / span 2"></div>
-							<div class="invoice-posting-date" style="grid-column: span 2 / span 2"></div>
-							` + tir + `
-						</div>
-						<div class="items-container"></div>
-					</section>
-				</div>`
+				`<section class="items-selector" id="card-view-section" style="grid-column: span 5/span 5!important;">
+					<div class="filter-section">` + cardlist + `<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
+						<div class="search-field" style="grid-column: span 4 / span 4"></div>
+						<!--<div class="item-code-search-field" style="grid-column: span 2 / span 2"></div>-->
+						<div class="item-group-field" style="grid-column: span 2 / span 2"></div>
+						<div class="invoice-posting-date" style="margin-left: 10px;grid-column: span 2 / span 2"></div>` + tir + `
+						
+					</div>
+					<div class="items-container"></div>
+				</section>
+				`
 			);
 
 			this.$component = this.wrapper.find('.items-selector');
@@ -107,9 +106,9 @@ posnext.PointOfSale.ItemSelector = class {
                     "display": "inline-block",
                     "background-color": "#3498db",
                     "color": "white",
-                    "padding": "5px 10px",
+                    "padding": "3px 3px",
                     "border-radius": "20px",
-                    "font-size": "14px",
+                    "font-size": "12px",
                     "font-weight": "bold",
                     "text-transform": "uppercase",
                     "letter-spacing": "1px",
@@ -120,7 +119,7 @@ posnext.PointOfSale.ItemSelector = class {
                     "display": "",
                     "background-color": "",
                     "color": "",
-                    "padding": "",
+                    "padding": "3px 3px",
                     "border-radius": "",
                     "font-size": "",
                     "font-weight": "",
@@ -134,9 +133,9 @@ posnext.PointOfSale.ItemSelector = class {
                     "display": "inline-block",
                     "background-color": "#3498db",
                     "color": "white",
-                    "padding": "5px 10px",
+                    "padding": "3px 3px",
                     "border-radius": "20px",
-                    "font-size": "14px",
+                    "font-size": "12px",
                     "font-weight": "bold",
                     "text-transform": "uppercase",
                     "letter-spacing": "1px",
@@ -147,7 +146,7 @@ posnext.PointOfSale.ItemSelector = class {
                     "display": "",
                     "background-color": "",
                     "color": "",
-                    "padding": "",
+                    "padding": "3px 3px",
                     "border-radius": "",
                     "font-size": "",
                     "font-weight": "",
