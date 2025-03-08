@@ -16,6 +16,63 @@ posnext.PointOfSale.Controller = class {
 
 	}
 
+	// Function to add the ledger balance box
+    add_ledger_balance_box() {
+        const updateLedgerBalance = (customerSection, balance) => {
+            let ledgerBalanceDiv = document.getElementById("ledger-balance-box");
+
+            if (!ledgerBalanceDiv) {
+                ledgerBalanceDiv = document.createElement("div");
+                ledgerBalanceDiv.id = "ledger-balance-box";
+                ledgerBalanceDiv.style.marginTop = "10px";
+                ledgerBalanceDiv.style.padding = "10px";
+                ledgerBalanceDiv.style.border = "1px solid #ccc";
+                ledgerBalanceDiv.style.borderRadius = "4px";
+                ledgerBalanceDiv.style.backgroundColor = "#f0f8ff";
+                ledgerBalanceDiv.style.fontWeight = "bold";
+                customerSection.appendChild(ledgerBalanceDiv);
+            }
+
+            // Update the balance
+            ledgerBalanceDiv.textContent = `Ledger Balance: Rs. ${balance}`;
+        };
+
+        const fetchLedgerBalance = async (customerId) => {
+            try {
+                const response = await frappe.call({
+                    method: "posnext.controllers.queries.get_ledger_balance",
+                    args: { customer: customerId },
+                });
+                return response.message || "0.00"; // Default to 0.00 if no balance found
+            } catch (error) {
+                console.error("Failed to fetch ledger balance:", error);
+                return "Error";
+            }
+        };
+
+        // Watch for customer section changes
+        const observer = new MutationObserver(async () => {
+            const customerSection = document.querySelector(".customer-section");
+
+            if (customerSection) {
+                const resetCustomerBtn = customerSection.querySelector(".reset-customer-btn");
+                const customerId = resetCustomerBtn?.getAttribute("data-customer");
+
+                if (customerId && customerId !== "undefined") {
+                    const ledgerBalance = await fetchLedgerBalance(customerId);
+                    updateLedgerBalance(customerSection, ledgerBalance);
+                } else {
+                    updateLedgerBalance(customerSection, "Select a Customer");
+                }
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+        });
+};
+	
 	fetch_opening_entry(value) {
 		return frappe.call("posnext.posnext.page.posnext.point_of_sale.check_opening_entry", { "user": frappe.session.user, "value": value });
 	}
