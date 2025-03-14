@@ -647,23 +647,26 @@ posnext.PointOfSale.Controller = class {
 				if (!item_code)
 					return;
 	
-				// Check if the custom_product_bundle setting is enabled
 				if (this.settings.custom_product_bundle) {
-					// Check if the item is part of a product bundle
 					const product_bundle = await this.get_product_bundle(item_code);
 					if (product_bundle && Array.isArray(product_bundle.items)) {
-						for (const bundle_item of product_bundle.items) {
-							const bundle_item_row = this.frm.add_child('items', {
-								item_code: bundle_item.item_code,
-								qty: bundle_item.qty * value,
-								rate: bundle_item.rate,
-								uom: bundle_item.uom
-							});
+						const bundle_items = product_bundle.items.map(bundle_item => ({
+							item_code: bundle_item.item_code,
+							qty: bundle_item.qty * value,
+							rate: bundle_item.rate,
+							uom: bundle_item.uom
+						}));
+	
+						for (const bundle_item of bundle_items) {
+							const bundle_item_row = this.frm.add_child('items', bundle_item);
 							await this.trigger_new_item_events(bundle_item_row);
 						}
-						return; // Exit the function as we don't want to add the parent item
+	
+						this.update_cart_html();
+						return;
 					}
 				}
+	
 				const new_item = { item_code, batch_no, rate, uom, [field]: value };
 				if(value){
 					new_item['qty'] = value
@@ -894,6 +897,70 @@ posnext.PointOfSale.Controller = class {
 			save_error && setTimeout(() => {
 				this.cart.toggle_checkout_btn(true);
 			}, 300); // wait for save to finish
+		} else {
+			this.payment.checkout();
+		}
+	}
+	async save_and_checkout() {
+		if (this.frm.is_dirty()) {
+			if(this.settings.custom_add_reference_details){
+			const dialog = new frappe.ui.Dialog({
+				title: __('Enter Reference Details'),
+				fields: [
+					{
+						fieldtype: 'Data',
+						label: __('Reference Number'),
+						fieldname: 'reference_no',
+						reqd: 1
+					},
+					{
+						fieldtype: 'Data',
+						label: __('Reference Name'),
+						fieldname: 'reference_name',
+						reqd: 1
+					}
+				],
+				primary_action_label: __('Proceed to Payment'),
+				primary_action: async (values) => {
+					this.frm.doc.custom_reference_no = values.reference_no;
+					this.frm.doc.custom_reference_name = values.reference_name;
+
+					const div = document.getElementById("customer-cart-container2");
+					div.style.gridColumn = "";
+					
+					let save_error = false;
+					await this.frm.save(null, null, null, () => save_error = true);
+					
+					dialog.hide();
+					
+					if (!save_error) {
+						this.payment.checkout();
+					} else {
+						setTimeout(() => {
+							this.cart.toggle_checkout_btn(true);
+						}, 300); // wait for save to finish
+					}
+				}
+			});
+
+			
+			dialog.show();
+			}else{
+
+			const div = document.getElementById("customer-cart-container2");
+			div.style.gridColumn = "";
+			let save_error = false;
+			await this.frm.save(null, null, null, () => save_error = true);
+			// only move to payment section if save is successful
+			!save_error && this.payment.checkout();
+			// show checkout button on error
+			save_error && setTimeout(() => {
+				this.cart.toggle_checkout_btn(true);
+			}, 300); // wait for save to finish
+			}
+
+
+
 		} else {
 			this.payment.checkout();
 		}
