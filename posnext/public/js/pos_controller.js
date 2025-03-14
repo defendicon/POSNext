@@ -726,25 +726,34 @@ posnext.PointOfSale.Controller = class {
 
 	get_item_from_frm({ name, item_code, batch_no, uom, rate }) {
 		let item_row = null;
-
+	
 		if (name) {
 			item_row = this.frm.doc.items.find(i => i.name == name);
 		} else {
 			// if item is clicked twice from item selector
 			// then "item_code, batch_no, uom, rate" will help in getting the exact item
 			// to increase the qty by one
-			const has_batch_no = (batch_no !== 'null' && batch_no !== null);
-			const batch_no_check = this.settings.custom_allow_add_new_items_on_new_line ? (has_batch_no && cur_frm.doc.items[i].batch_no === batch_no) : true
-			for(var i=0;i<cur_frm.doc.items.length;i+=1){
-				if(cur_frm.doc.items[i].item_code === item_code && cur_frm.doc.items[i].uom === uom && parseFloat(cur_frm.doc.items[i].rate) === parseFloat(rate)){
-					item_row = cur_frm.doc.items[i]
-					break
+			for (var i = 0; i < cur_frm.doc.items.length; i += 1) {
+				const has_batch_no = (batch_no !== 'null' && batch_no !== null);
+				const batch_no_check = this.settings.custom_allow_add_new_items_on_new_line
+					? (has_batch_no && cur_frm.doc.items[i].batch_no === batch_no)
+					: true;
+	
+				if (
+					cur_frm.doc.items[i].item_code === item_code &&
+					cur_frm.doc.items[i].uom === uom &&
+					parseFloat(cur_frm.doc.items[i].rate) === parseFloat(rate) &&
+					batch_no_check
+				) {
+					item_row = cur_frm.doc.items[i];
+					break;
 				}
 			}
-			console.log(item_row)
+			console.log(item_row);
 		}
 		return item_row || {};
 	}
+	
 
 	edit_item_details_of(item_row) {
 		this.item_details.toggle_item_details_section(item_row);
