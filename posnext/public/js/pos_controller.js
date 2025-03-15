@@ -902,6 +902,14 @@ posnext.PointOfSale.Controller = class {
 		}
 	}
 	async save_and_checkout() {
+		if (!this.frm.doc.items || this.frm.doc.items.length === 0) {
+			frappe.show_alert({
+				message: __('Please add items to cart before checkout.'),
+				indicator: 'red'
+			});
+			frappe.utils.play_sound("error");
+			return;
+		}
 		if (this.frm.is_dirty()) {
 			if(this.settings.custom_add_reference_details){
 			const dialog = new frappe.ui.Dialog({
@@ -911,13 +919,11 @@ posnext.PointOfSale.Controller = class {
 						fieldtype: 'Data',
 						label: __('Reference Number'),
 						fieldname: 'reference_no',
-						reqd: 1
 					},
 					{
 						fieldtype: 'Data',
 						label: __('Reference Name'),
 						fieldname: 'reference_name',
-						reqd: 1
 					}
 				],
 				primary_action_label: __('Proceed to Payment'),

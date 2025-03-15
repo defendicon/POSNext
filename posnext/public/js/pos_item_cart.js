@@ -399,7 +399,18 @@ this.highlight_checkout_btn(true);
 
 		this.$component.on('click', '.checkout-btn-held', function() {
 			if ($(this).attr('style').indexOf('--blue-500') == -1) return;
-			if(!cur_frm.doc.customer && me.mobile_number_based_customer){
+		
+			// Check for empty cart
+			if (!cur_frm.doc.items || cur_frm.doc.items.length === 0) {
+				frappe.show_alert({
+					message: __('Please add items to cart before holding.'),
+					indicator: 'red'
+				});
+				frappe.utils.play_sound("error");
+				return;
+			}
+		
+			if(!cur_frm.doc.customer && me.mobile_number_based_customer) {
 				let d = new frappe.ui.Dialog({
 					title: 'Enter Mobile Number',
 					fields: [
@@ -420,94 +431,29 @@ this.highlight_checkout_btn(true);
 					primary_action_label: 'Continue',
 					primary_action: function(values) {
 						if(values['mobile_number'].length !== me.settings.custom_mobile_number_length){
-							frappe.throw("Mobile Number Length is " + me.settings.custom_mobile_number_length.toString())
+							frappe.throw("Mobile Number Length is " + me.settings.custom_mobile_number_length.toString());
 						}
-						frappe.call({
-							method: "posnext.posnext.page.posnext.point_of_sale.create_customer",
-							args: {
-								customer: values['mobile_number']
-							},
-							freeze: true,
-							freeze_message: "Creating Customer....",
-							callback: async function(){
-								const frm = me.events.get_frm();
-								frappe.dom.freeze();
-								frappe.model.set_value(frm.doc.doctype, frm.doc.name, 'customer', values['mobile_number']);
-								frm.script_manager.trigger('customer', frm.doc.doctype, frm.doc.name).then(() => {
-									frappe.run_serially([
-										() => me.fetch_customer_details(values['mobile_number']),
-										() => me.events.customer_details_updated(me.customer_info),
-										() => me.update_customer_section(),
-										() => frappe.dom.unfreeze()
-									]);
-								})
-								me.events.save_draft_invoice()
-
-								d.hide();
-							}
-						})
+						if (me.settings.custom_add_reference_details) {
+							me.show_reference_dialog(values['mobile_number']);
+						} else {
+							me.hold_invoice(values['mobile_number']);
+						}
+						d.hide();
 					}
 				});
-				var mobile_number_numpad_div = d.wrapper.find(".mobile_number_numpad")
-				mobile_number_numpad_div.append(`
-					<div class="custom-numpad">
-						<style>
-						.custom-numpad {
-							display: grid;
-							grid-template-columns: repeat(3, 1fr);
-							gap: 10px;
-							max-width: 350px;
-							margin: 0 auto;
-						}
-						
-						.numpad-button {
-							padding: 15px;
-							font-size: 18px;
-							cursor: pointer;
-							background-color: #f1f1f1;
-							border: 1px solid #ccc;
-							border-radius: 5px;
-							text-align: center;
-						}
-						
-						.numpad-button:hover {
-							background-color: #ddd;
-						}
-						</style>
-						<button class="numpad-button one">1</button>
-						<button class="numpad-button two">2</button>
-						<button class="numpad-button three">3</button>
-						<button class="numpad-button four">4</button>
-						<button class="numpad-button five">5</button>
-						<button class="numpad-button six">6</button>
-						<button class="numpad-button seven">7</button>
-						<button class="numpad-button eight">8</button>
-						<button class="numpad-button nine">9</button>
-						<button class="numpad-button delete" style="color: red">x</button>
-						<button class="numpad-button zero">0</button>
-						<button class="numpad-button clear">C</button> <!-- Clear button -->
-					</div>`)
-
+		
+				me.setup_mobile_numpad(d);
 				d.show();
-				var numpad_num = d.wrapper.find(".custom-numpad")
-				var numbers = ["one",'two','three','four','five','six','seven','eight','nine','zero',"plus"]
-				for(var xx=0;xx<numbers.length;xx+=1){
-					numpad_num.on('click', '.' + numbers[xx], function() {
-						var current_value = d.get_value("mobile_number")
-						d.set_value('mobile_number', current_value + $(this)[0].innerHTML.toString());
-					})
-				}
-				numpad_num.on('click', '.clear', function() {
-						d.set_value('mobile_number', "");
-					})
-					numpad_num.on('click', '.delete', function() {
-					var current_value = d.get_value("mobile_number")
-						d.set_value('mobile_number', current_value.slice(0, -1));
-					})
 			} else {
-				me.events.save_draft_invoice();
+				if (me.settings.custom_add_reference_details) {
+					me.show_reference_dialog();
+				} else {
+					me.hold_invoice();
+				}
 			}
 		});
+		
+
 		this.$component.on('click', '.checkout-btn-order', () => {
 			this.events.toggle_recent_order();
 		});
@@ -1717,4 +1663,66 @@ this.highlight_checkout_btn(true);
 		show ? this.$component.css('display', 'flex') : this.$component.css('display', 'none');
 	}
 
+	show_reference_dialog(mobile_number = null) {
+		const me = this;
+		const dialog = new frappe.ui.Dialog({
+			title: __('Enter Reference Details'),
+			fields: [
+				{
+					fieldtype: 'Data',
+					label: __('Reference Number'),
+					fieldname: 'reference_no',
+					reqd: 1
+				},
+				{
+					fieldtype: 'Data',
+					label: __('Reference Name'),
+					fieldname: 'reference_name',
+					reqd: 1
+				}
+			],
+			primary_action_label: __('Hold Invoice'),
+			primary_action: async (values) => {
+				if (mobile_number) {
+					// Create customer if mobile number provided
+					await frappe.call({
+						method: "posnext.posnext.page.posnext.point_of_sale.create_customer",
+						args: { customer: mobile_number },
+						freeze: true,
+						freeze_message: "Creating Customer...."
+					});
+					
+					const frm = me.events.get_frm();
+					await frappe.model.set_value(frm.doc.doctype, frm.doc.name, 'customer', mobile_number);
+					await frm.script_manager.trigger('customer', frm.doc.doctype, frm.doc.name);
+				}
+
+				// Update reference details
+				const frm = me.events.get_frm();
+				frm.doc.custom_reference_no = values.reference_no;
+				frm.doc.custom_reference_name = values.reference_name;
+				
+				dialog.hide();
+				await me.events.save_draft_invoice();
+			}
+		});
+		dialog.show();
+	}
+
+	async hold_invoice(mobile_number = null) {
+		if (mobile_number) {
+			await frappe.call({
+				method: "posnext.posnext.page.posnext.point_of_sale.create_customer",
+				args: { customer: mobile_number },
+				freeze: true,
+				freeze_message: "Creating Customer...."
+			});
+			
+			const frm = this.events.get_frm();
+			await frappe.model.set_value(frm.doc.doctype, frm.doc.name, 'customer', mobile_number);
+			await frm.script_manager.trigger('customer', frm.doc.doctype, frm.doc.name);
+		}
+		
+		await this.events.save_draft_invoice();
+	}
 }
