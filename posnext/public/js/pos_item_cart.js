@@ -20,6 +20,8 @@ posnext.PointOfSale.ItemCart = class {
 		this.custom_show_last_customer_rate = settings.custom_show_last_customer_rate;
 		this.custom_show_logical_rack_in_cart = settings.custom_show_logical_rack_in_cart && settings.custom_edit_rate_and_uom;
 		this.custom_show_uom_in_cart = settings.custom_show_uom_in_cart && settings.custom_edit_rate_and_uom;
+		this.show_branch = settings.show_branch;
+		this.show_batch_in_cart = settings.show_batch_in_cart
 		// this.custom_edit_uom = settings.custom_edit_uom;
 		this.settings = settings;
 		this.warehouse = settings.warehouse;
@@ -79,6 +81,9 @@ posnext.PointOfSale.ItemCart = class {
 			if(this.custom_show_uom_in_cart){
 				html += `<div class="uom-header" style="flex: 1">${__('UOM')}</div>`
 			}
+			if(this.show_batch_in_cart){
+				html += `<div class="batch-header" style="flex: 1">${__('Batch')}</div>`
+			}
 			if(this.custom_edit_rate){
 				html += `<div class="rate-header" style="flex: 1">${__('Rate')}</div>`
 			}
@@ -102,13 +107,14 @@ posnext.PointOfSale.ItemCart = class {
 		html += `<div class="rate-amount-header" style="flex: 1;text-align: left">${__('Amount')}</div>
 					</div>
 					<div class="cart-items-section" ></div>
+					<div class="cart-branch-section"></div>
 					<div class="cart-totals-section"></div>
 					<div class="numpad-section"></div>
 				</div>
 			</div>`
 		this.$component.append(html);
 		this.$cart_container = this.$component.find('.cart-container');
-
+		this.make_branch_section();
 		this.make_cart_totals_section();
 		this.make_cart_items_section();
 		this.make_cart_numpad();
@@ -139,9 +145,55 @@ posnext.PointOfSale.ItemCart = class {
 		);
 	}
 
+	get_branch_icon() {
+		return `
+			<svg class="branch-icon" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<path d="M5 3V9M5 3C6.65685 3 8 4.34315 8 6C8 7.65685 6.65685 9 5 9M5 3C3.34315 3 2 4.34315 2 6C2 7.65685 3.34315 9 5 9M19 15V21M19 15C20.6569 15 22 16.3431 22 18C22 19.6569 20.6569 21 19 21M19 15C17.3431 15 16 16.3431 16 18C16 19.6569 17.3431 21 19 21M5 9C5 13.4183 8.58172 17 13 17H16" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+			</svg>
+		`;
+	}
+	
+	make_branch_section() {
+		if (this.show_branch) {
+			this.$branch_section = this.$component.find('.cart-branch-section');
+	
+			if (this.$branch_section.length) {
+				this.$branch_section.append(`
+					<br>
+					<div class="add-branch-wrapper">
+						${this.get_branch_icon()} <span class="add-branch-text">${__('Add Branch')}</span>
+					</div>
+				`);
+	
+				// Apply styles
+				this.$branch_section.find('.add-branch-wrapper').css({
+					"display": "flex",
+					"align-items": "center",
+					"gap": "8px",
+					"border": "2px dashed #ccc",
+					"padding": "10px",
+					"border-radius": "6px",
+					"cursor": "pointer",
+					"font-weight": "bold"
+				});
+	
+				// Change cursor on hover
+				this.$branch_section.find('.add-branch-wrapper').hover(
+					function () {
+						$(this).css("background-color", "#f9f9f9");
+					},
+					function () {
+						$(this).css("background-color", "transparent");
+					}
+				);
+			}
+		}
+	}
+	
+	
 	make_cart_totals_section() {
 		this.$totals_section = this.$component.find('.cart-totals-section');
-
+		
 		this.$totals_section.append(
 			`<div class="add-discount-wrapper">
 				${this.get_discount_icon()} ${__('Add Discount')}
@@ -470,6 +522,35 @@ this.highlight_checkout_btn(true);
 			if(!this.discount_field || can_edit_discount) this.show_discount_control();
 		});
 
+		this.$component.on('click', '.add-branch-wrapper', function () {
+			const $wrapper = $(this); // Store reference to the clicked element
+		
+			// Create a div container for the link field
+			const branchFieldWrapper = $('<div class="branch-field"></div>');
+		
+			// Replace the wrapper with the new div
+			$wrapper.replaceWith(branchFieldWrapper);
+		
+			// Create a Frappe Link Field dynamically
+			let branchField = new frappe.ui.form.ControlLink({
+				df: {
+					fieldtype: 'Link',
+					options: 'Branch',  // Link to Branch Doctype
+					fieldname: 'branch',
+					label: 'Branch',
+					placeholder: 'Select Branch',
+				},
+				parent: branchFieldWrapper, // Append inside the same container
+				value: '',
+				change: function (value) {
+					console.log('Selected Branch:', value);
+				}
+			});
+		
+			// Render the field
+			branchField.refresh();
+		});
+		
 		frappe.ui.form.on("Sales Invoice", "paid_amount", frm => {
 			// called when discount is applied
 			this.update_totals_section(frm);
@@ -529,6 +610,8 @@ this.highlight_checkout_btn(true);
 			ignore_inputs: true,
 			page: cur_page.page.page
 		});
+
+
 		frappe.ui.keys.on("escape", () => {
 			const item_cart_visible = this.$component.is(":visible");
 			if (item_cart_visible && this.discount_field && this.discount_field.parent.is(":visible")) {
@@ -870,7 +953,6 @@ this.highlight_checkout_btn(true);
 	}
 
 	render_cart_item(item_data, $item_to_update) {
-
 		const currency = this.events.get_frm().doc.currency;
 		const me = this;
 
@@ -935,6 +1017,27 @@ this.highlight_checkout_btn(true);
 					parent: $item_to_update.find(`.item-uom`),
 					render_input: true,
 				});
+			}
+			if(me.show_batch_in_cart){
+				this[item_data.item_code + "_batch"] = frappe.ui.form.make_control({
+					df: {
+						fieldname: "batch",
+						fieldtype: "Link",
+						options: "Batch",
+						get_query: function() {
+							return {
+								filters: {
+									item: item_data.item_code
+								}
+							};
+						},
+						onchange: function() {
+							me.events.form_updated(item_data, "batch_no", this.value);
+						},
+					},
+					parent: $item_to_update.find(`.item-batch`),
+					render_input: true,
+				});				
 			}
             this[item_data.item_code + "_rate"] = frappe.ui.form.make_control({
                     df: {
@@ -1045,7 +1148,9 @@ this.highlight_checkout_btn(true);
 				this[item_data.item_code + "_uom"].set_value(item_data.uom);
 				this[item_data.item_code + "_uom"].refresh();
 			}
-			
+			if(me.show_batch_in_cart){
+				this[item_data.item_code + "_batch"].set_value(item_data.batch_no);
+			}
             // this[item_data.item_code + "_amount"].set_value(parseFloat(item_data.amount).toFixed(3));
             // this[item_data.item_code + "_rate"].set_value(parseFloat(item_data.rate).toFixed(3));
 			this[item_data.item_code + "_amount"].set_value(item_data.amount);
@@ -1111,6 +1216,9 @@ this.highlight_checkout_btn(true);
 					if(me.custom_show_uom_in_cart){
 						html += `<div class="item-uom" style="flex: 1;text-align: left"></div>`;
 					}
+					if(me.show_batch_in_cart){
+						html += `<div class="item-batch" style="flex: 1;text-align: left"></div>`;
+					}
 					html += `<div class="item-rate" style="flex: 1;"></div>`;
 					if(me.custom_use_discount_percentage){
 						html += `<div class="item-rate-discount" style="flex: 1;text-align: left"></div>`
@@ -1137,6 +1245,9 @@ this.highlight_checkout_btn(true);
                         <div class="item-qty" style="flex: 1"></div>`;
 					if(me.custom_show_uom_in_cart){
 						html += `<div class="item-uom" style="flex: 1;text-align: left"></div>`;
+					}
+					if(me.show_batch_in_cart){
+						html += `<div class="item-batch" style="flex: 1;text-align: left"></div>`;
 					}
 					html += `<div class="item-rate" style="flex: 1;"></div>`;
 					if(me.custom_use_discount_percentage){
@@ -1165,6 +1276,7 @@ this.highlight_checkout_btn(true);
                         <div class="item-qty-rate" style="flex: 4" > 
                             <div class="item-qty" style="flex: 1"><span>${item_data.qty || 0}</span></div>
                             <div class="item-qty" style="flex: 1"><span> ${item_data.uom}</span></div>
+							<div class="item-qty" style="flex: 1"><span> ${item_data.batch}</span></div>
                             <div class="item-rate-amount" style="flex: 1">
                                 <div class="item-rate">${parseFloat(item_data.amount).toFixed(2)}</div>
                                 <div class="item-amount">${parseFloat(item_data.rate).toFixed(2)}</div>
@@ -1175,6 +1287,7 @@ this.highlight_checkout_btn(true);
                         <div class="item-qty-rate" style="flex: 4" >
                             <div class="item-qty" style="flex: 1" ><span>${item_data.qty || 0}</span></div>
                             <div class="item-qty" style="flex: 1"><span> ${item_data.uom}</span></div>
+							<div class="item-qty" style="flex: 1"><span> ${item_data.batch}</span></div>
                             <div class="item-rate-amount" style="flex: 1">
                                 <div class="item-rate">${parseFloat(item_data.rate).toFixed(2)}</div>
                             </div>
