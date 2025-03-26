@@ -99,3 +99,11 @@ jobs:
           bench --site test_site run-tests --app posnext
         env:
           TYPE: server
+
+- name: Cache
+  uses: actions/cache@v3
+  with:
+    path: ~/.npm
+    key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+    restore-keys: |
+      ${{ runner.os }}-node-
