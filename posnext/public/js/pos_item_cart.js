@@ -978,7 +978,7 @@ this.highlight_checkout_btn(true);
 			item_html += `<div class="item-name-desc" style="flex: 3.5">`
 		}
 
-		item_html += `<div class="item-name">
+		item_html += `<div class="item-name" style="flex: 4; white-space: normal; word-wrap: break-word; overflow: visible; line-height: 1.2;">
 					${item_data.item_name}
 				</div>
 				${get_description_html()}
