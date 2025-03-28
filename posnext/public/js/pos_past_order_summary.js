@@ -370,7 +370,11 @@ posnext.PointOfSale.PastOrderSummary = class {
 		const condition_btns_map = this.get_condition_btn_map(after_submission);
 
 		this.add_summary_btns(condition_btns_map);
-		this.$summary_wrapper.css("width",after_submission ? "35%" : "60%")
+		this.$summary_wrapper.css("width",after_submission ? "35%" : "60%");
+
+		if (after_submission) {
+			this.print_receipt_on_order_complete();
+		}
 	}
 
 	attach_document_info(doc) {
@@ -439,4 +443,22 @@ posnext.PointOfSale.PastOrderSummary = class {
 		show ? this.$component.css('display', 'flex') : this.$component.css('display', 'none');
 
 	}
+
+	async print_receipt_on_order_complete() {
+   
+        const profile_name = this.pos_profile?.name || this.pos_profile;
+
+        const { message } = await frappe.db.get_value(
+            "POS Profile",
+            profile_name,
+            ["print_receipt_on_order_complete", "print_format"]
+        );
+
+        if (message?.print_receipt_on_order_complete) {
+            setTimeout(() => this.print_receipt(), 300);
+        }
+   
+}
+
+	
 };
