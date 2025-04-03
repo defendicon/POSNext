@@ -416,7 +416,7 @@ posnext.PointOfSale.ItemSelector = class {
 							<div class="item-rate" style="text-align: left">${format_currency(item_data.price_list_rate, currency)}</div>
 						</div>
 						<div class="item-qty" style="flex: 1;display:block;text-align: center"><span> ${item_data.actual_qty || 0}</span></div>
-						<div class="item-batch" style="flex: 1;display:block;text-align: center"><span> ${item_data.batch_no || 0}</span></div>
+					
 						
 					</div>`
 			} else {
@@ -426,7 +426,7 @@ posnext.PointOfSale.ItemSelector = class {
 							<div class="item-rate" style="text-align: left">${format_currency(item_data.price_list_rate, currency)}</div>
 						</div>
 						<div class="item-qty" style="flex: 1;display:block;text-align: center"><span> ${item_data.actual_qty || 0}</span></div>
-						<div class="item-batch" style="flex: 1;display:block;text-align: center"><span> ${item_data.batch_no || 0}</span></div>
+						
 						
 					</div>`
 			}
