@@ -141,7 +141,6 @@ doc_events = {
 	"Sales Invoice": {
 		"validate": [
 			"posnext.doc_events.sales_invoice.validate_si",
-			"posnext.doc_events.sales_invoice.validate_taxes",
 		]
 	},
 	"POS Profile": {

@@ -15,9 +15,11 @@ def validate_si(doc,method):
                 })
 
 
-@frappe.whitelist()
-def validate_taxes(doc, method):
-    if doc.taxes and doc.is_pos:
-        for tax in doc.taxes:
-            if not tax.included_in_print_rate:
-                tax.included_in_print_rate = 1
+# @frappe.whitelist()
+# def validate_taxes(doc, method):
+#     if doc.taxes and doc.is_pos:
+#         for tax in doc.taxes:
+#             if not tax.included_in_print_rate:
+#                 tax.included_in_print_rate = 1
+#             else:
+#                 tax.included_in_print_rate = 0
