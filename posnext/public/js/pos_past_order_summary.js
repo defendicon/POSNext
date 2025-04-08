@@ -160,78 +160,109 @@ posnext.PointOfSale.PastOrderSummary = class {
 	}
 
 	bind_events() {
-		this.$summary_container.on('click', '.return-btn', () => {
-			this.events.process_return(this.doc.name);
-			this.toggle_component(false);
-			this.$component.find('.no-summary-placeholder').css('display', 'flex');
-			this.$summary_wrapper.css('display', 'none');
-		});
+        this.$summary_container.on('click', '.return-btn', () => {
+            this.events.process_return(this.doc.name);
+            this.toggle_component(false);
+            this.$component.find('.no-summary-placeholder').css('display', 'flex');
+            this.$summary_wrapper.css('display', 'none');
+        });
 
-		this.$summary_container.on('click', '.edit-btn', () => {
-			this.events.edit_order(this.doc.name);
-			this.toggle_component(false);
-			this.$component.find('.no-summary-placeholder').css('display', 'flex');
-			this.$summary_wrapper.css('display', 'none');
-		});
+        this.$summary_container.on('click', '.edit-btn', () => {
+            this.events.edit_order(this.doc.name);
+            this.toggle_component(false);
+            this.$component.find('.no-summary-placeholder').css('display', 'flex');
+            this.$summary_wrapper.css('display', 'none');
+        });
 
-		this.$summary_container.on('click', '.delete-btn', () => {
-			this.events.delete_order(this.doc.name);
-			this.show_summary_placeholder();
-		});
+        this.$summary_container.on('click', '.delete-btn', () => {
+            this.events.delete_order(this.doc.name);
+            this.show_summary_placeholder();
+        });
 
-		this.$summary_container.on('click', '.send-btn', () => {
-			// this.events.delete_order(this.doc.name);
-			// this.show_summary_placeholder();
-		console.log(this.pos_profile)
-		var field_names = this.pos_profile.custom_whatsapp_field_names.map(x => this.doc[x.field_names.toString()]);
-			console.log(field_names)
-			console.log(field_names.join(","))
-			var message = "https://wa.me/" +  this.doc.customer +"?text="
-			message += formatString(this.pos_profile.custom_whatsapp_message, field_names);
-			console.log(message)
-			// message += "Hello, here is the file you requested."
-			frappe.call({
-				method: "posnext.posnext.page.posnext.point_of_sale.generate_pdf_and_save",
-				args: {
-					docname: this.doc.name,
-					doctype: this.doc.doctype,
-					print_format: this.pos_profile.print_format
-				},
-				freeze: true,
-				freeze_message: "Creating file then send to whatsapp thru link....",
-				callback: function (r) {
-					message += "Please Find your invoice here \n "+window.origin+r.message.file_url
-					window.open(message)
-                }
-			})
-			// this.toggle_component(false);
-			// this.$component.find('.no-summary-placeholder').removeClass('d-none');
-			// this.$summary_wrapper.addClass('d-none');
-		});
-		function formatString(str, args) {
-			return str.replace(/{(\d+)}/g, function(match, number) {
-				return typeof args[number] !== 'undefined'
-					? args[number]
-					: match;
-			});
-		}
+        this.$summary_container.on('click', '.send-btn', () => {
+            if (!this.pos_profile.custom_notification_message_whatsapp) {
+                frappe.show_alert({
+                    message: __('WhatsApp notification is not enabled in POS Profile'),
+                    indicator: 'orange'
+                });
+                return;
+            }
 
-		this.$summary_container.on('click', '.new-btn', () => {
-			this.events.new_order();
-			this.toggle_component(false);
-			this.$component.find('.no-summary-placeholder').css('display', 'flex');
-			this.$summary_wrapper.css('display', 'none');
-		});
+            if (!this.doc.customer) {
+                frappe.throw(__('Please select a customer first'));
+                return;
+            }
 
-		this.$summary_container.on('click', '.email-btn', () => {
-			this.email_dialog.fields_dict.email_id.set_value(this.customer_email);
-			this.email_dialog.show();
-		});
+            frappe.db.get_value('Customer', this.doc.customer, 'mobile_no')
+                .then(({ message }) => {
+                    if (message.mobile_no) {
+                        const mobile_no = message.mobile_no.replace(/[^0-9]/g, '');
+                        const whatsapp_message = "https://wa.me/" + mobile_no + "?text=";
+                        
+                        // Get the print URL directly
+                        const print_url = frappe.urllib.get_full_url(
+                            '/printview?doctype=' + encodeURIComponent(this.doc.doctype) +
+                            '&name=' + encodeURIComponent(this.doc.name) +
+                            '&format=' + encodeURIComponent(this.pos_profile.print_format) +
+                            '&no_letterhead=0' +
+                            '&_lang=' + encodeURIComponent(frappe.boot.lang) +
+                            '&trigger_print=1'
+                        );
 
-		this.$summary_container.on('click', '.print-btn', () => {
-			this.print_receipt();
-		});
-	}
+                        const final_message = whatsapp_message + 
+                            encodeURIComponent("Please find your invoice here \n" + print_url);
+                        window.open(final_message);
+                    } else {
+                        var field_values = this.pos_profile.custom_whatsapp_field_names.map(x => this.doc[x.field_name]);
+
+                        var message_body = formatString(this.pos_profile.custom_whatsapp_message, field_values);
+
+                        const print_url = frappe.urllib.get_full_url(
+                            '/printview?doctype=' + encodeURIComponent(this.doc.doctype) +
+                            '&name=' + encodeURIComponent(this.doc.name) +
+                            '&format=' + encodeURIComponent(this.pos_profile.print_format) +
+                            '&no_letterhead=0' +
+                            '&_lang=' + encodeURIComponent(frappe.boot.lang) +
+                            '&trigger_print=1'
+                        );
+
+                        message_body += "\n\nPlease find your invoice here:\n" + print_url;
+
+                        var encoded_message = encodeURIComponent(message_body);
+
+                        var phone_number = this.doc.customer;
+
+                        var whatsapp_url = "https://wa.me/" + phone_number + "?text=" + encoded_message;
+
+                        window.open(whatsapp_url, '_blank');
+                    }
+                });
+        });
+
+        function formatString(str, args) {
+            return str.replace(/{(\d+)}/g, function(match, number) {
+                return typeof args[number] !== 'undefined'
+                    ? args[number]
+                    : match;
+            });
+        }
+
+        this.$summary_container.on('click', '.new-btn', () => {
+            this.events.new_order();
+            this.toggle_component(false);
+            this.$component.find('.no-summary-placeholder').css('display', 'flex');
+            this.$summary_wrapper.css('display', 'none');
+        });
+
+        this.$summary_container.on('click', '.email-btn', () => {
+            this.email_dialog.fields_dict.email_id.set_value(this.customer_email);
+            this.email_dialog.show();
+        });
+
+        this.$summary_container.on('click', '.print-btn', () => {
+            this.print_receipt();
+        });
+    }
 
 	print_receipt() {
 		const frm = this.events.get_frm();
