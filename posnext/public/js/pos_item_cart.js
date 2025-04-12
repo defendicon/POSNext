@@ -220,7 +220,7 @@ posnext.PointOfSale.ItemCart = class {
 							border: none;
 							border-radius: 5px;
 							cursor: pointer;
-							flex: 1; ">${__('Checkout')}</div>
+							flex: 1; ">${__('Checkout (F1)')}</div>
 				<div class="checkout-btn-held checkout-btn" style="
 							padding: 10px;
 							align-items: center;
@@ -229,7 +229,7 @@ posnext.PointOfSale.ItemCart = class {
 							border: none;
 							border-radius: 5px;
 							cursor: pointer;
-							flex: 1;">${__('Held')}</div>
+							flex: 1;">${__('Held (F2)')}</div>
 				<div class="checkout-btn-order checkout-btn" style="
 				padding: 10px;
 							align-items: center;
@@ -238,7 +238,7 @@ posnext.PointOfSale.ItemCart = class {
 							border: none;
 							border-radius: 5px;
 							cursor: pointer;
-							flex: 1;">${__('Order List')}</div>
+							flex: 1;">${__('Order List (F3)')}</div>
 			</div>	
 			<div class="edit-cart-btn">${__('Edit Cart')}</div>`
 		)
@@ -1839,3 +1839,55 @@ this.highlight_checkout_btn(true);
 		await this.events.save_draft_invoice();
 	}
 }
+
+document.addEventListener('keydown', function (event) {
+    const activeElement = document.activeElement;
+    const isInputActive = activeElement.tagName === 'INPUT' || 
+                          activeElement.tagName === 'TEXTAREA' || 
+                          activeElement.isContentEditable;
+
+    if (event.key === 'F1' && !isInputActive) {
+        event.preventDefault(); // Prevent browser help window
+        const checkoutButton = document.querySelector('.checkout-btn');
+        if (checkoutButton) {
+            checkoutButton.click();
+        } else {
+            console.warn("Checkout button not found!");
+        }
+    }
+
+    // New shortcut for the held checkout button
+    if (event.key === 'F2' && !isInputActive) {
+        event.preventDefault(); // Prevent default action
+        const heldCheckoutButton = document.querySelector('.checkout-btn-held');
+        if (heldCheckoutButton) {
+            heldCheckoutButton.click();
+        } else {
+            console.warn("Held Checkout button not found!");
+        }
+    }
+
+	// ... existing code ...
+    // New shortcut for the checkout button order
+    if (event.key === 'F3' && !isInputActive) {
+        event.preventDefault(); // Prevent default action
+        const orderCheckoutButton = document.querySelector('.checkout-btn-order');
+        if (orderCheckoutButton) {
+            orderCheckoutButton.click();
+        } else {
+            console.warn("Order Checkout button not found!");
+        }
+    }
+// ... existing code ...
+    // New shortcut for the search field button
+    if (event.key === 'F4' && !isInputActive) {
+        event.preventDefault(); // Prevent default action
+        const searchFieldButton = document.querySelector('.search-field button'); // Adjust selector as needed
+        if (searchFieldButton) {
+            searchFieldButton.click();
+        } else {
+            console.warn("Search field button not found!");
+        }
+    }
+});
+
