@@ -11,6 +11,7 @@ posnext.PointOfSale.ItemSelector = class {
 		this.hide_images = settings.hide_images;
 		this.reload_status = reload_status
 		this.auto_add_item = settings.auto_add_item_to_cart;
+		this.auto_search_serial = settings.custom_auto_search_serial_number;
 		if(settings.custom_default_view){
 			view = settings.custom_default_view
 		}
@@ -812,9 +813,7 @@ posnext.PointOfSale.ItemSelector = class {
 				const items = this.search_index[search_term];
 				this.items = items;
 				this.render_item_list(items);
-				this.auto_add_item && this.items.length == 1;
-				// Automatically add item to cart if only one item is found
-				if (this.items.length === 1) {
+				if (this.auto_search_serial && this.items.length === 1) {
 					this.add_filtered_item_to_cart();
 				}
 				return;
@@ -823,16 +822,13 @@ posnext.PointOfSale.ItemSelector = class {
 
 		this.get_items({ search_term })
 			.then(({ message }) => {
-				// eslint-disable-next-line no-unused-vars
 				const { items, serial_no, batch_no, barcode } = message;
 				if (search_term && !barcode) {
 					this.search_index[search_term] = items;
 				}
 				this.items = items;
 				this.render_item_list(items);
-				this.auto_add_item && this.items.length == 1;
-				// Automatically add item to cart if only one item is found
-				if (this.items.length === 1) {
+				if (this.auto_search_serial && this.items.length === 1) {
 					this.add_filtered_item_to_cart();
 				}
 			});
