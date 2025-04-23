@@ -650,7 +650,7 @@ posnext.PointOfSale.Payment = class {
 		if (!doc) doc = this.events.get_frm().doc;
 		let branch_value = $('.input-with-feedback[data-fieldname="branch"]').val();
 		frappe.model.set_value(cur_frm.doctype, cur_frm.docname, 'branch', branch_value);
-		cur_frm.save()
+		// cur_frm.save()
 		// doc.paid_amount = doc.grand_total
 			const paid_amount = doc.paid_amount;
 
