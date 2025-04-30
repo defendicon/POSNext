@@ -141,6 +141,9 @@ doc_events = {
 	"Sales Invoice": {
 		"validate": [
 			"posnext.doc_events.sales_invoice.validate_si",
+		],
+		"on_submit": [
+			"posnext.doc_events.sales_invoice.create_delivery_note",
 		]
 	},
 	"POS Profile": {

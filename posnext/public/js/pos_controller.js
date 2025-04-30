@@ -12,9 +12,25 @@ posnext.PointOfSale.Controller = class {
 			() => this.reload_status = true,
 		]);
 
-
+		this.setup_form_events();
 
 	}
+	setup_form_events() {
+		frappe.ui.form.on('Sales Invoice', {
+			after_save: function(frm) {
+				if (!frm.doc.pos_profile) return;
+	
+				frappe.db.get_doc('POS Profile', frm.doc.pos_profile)
+					.then(pos_profile => {
+						if (pos_profile.custom_stock_update) {
+							frm.set_value('update_stock', 0);
+							// frm.save();
+						}
+					});
+			}
+		});
+	}
+	
 
 	fetch_opening_entry(value) {
 		return frappe.call("posnext.posnext.page.posnext.point_of_sale.check_opening_entry", { "user": frappe.session.user, "value": value });
