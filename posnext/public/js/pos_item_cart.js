@@ -22,6 +22,7 @@ posnext.PointOfSale.ItemCart = class {
 		this.custom_show_uom_in_cart = settings.custom_show_uom_in_cart && settings.custom_edit_rate_and_uom;
 		this.show_branch = settings.show_branch;
 		this.show_batch_in_cart = settings.show_batch_in_cart
+		this.show_item_description = settings.custom_show_item_discription;
 		// this.custom_edit_uom = settings.custom_edit_uom;
 		this.settings = settings;
 		this.warehouse = settings.warehouse;
@@ -525,7 +526,6 @@ this.highlight_checkout_btn(true);
 		this.$component.on('click', '.add-branch-wrapper', function () {
 			const $wrapper = $(this);
 			const posProfileName = me.settings.name;
-			console.log("POS Profile:", posProfileName);
 		
 			const branchFieldWrapper = $('<div class="branch-field"></div>');
 			$wrapper.replaceWith(branchFieldWrapper);
@@ -971,7 +971,7 @@ this.highlight_checkout_btn(true);
 		this.update_empty_cart_section(no_of_cart_items);
 	}
 
-	render_cart_item(item_data, $item_to_update) {
+	async render_cart_item(item_data, $item_to_update) {
 		const currency = this.events.get_frm().doc.currency;
 		const me = this;
 
@@ -1000,7 +1000,7 @@ this.highlight_checkout_btn(true);
 		item_html += `<div class="item-name" style="flex: 4; white-space: normal; word-wrap: break-word; overflow: visible; line-height: 1.2;">
 					${item_data.item_name}
 				</div>
-				${get_description_html()}
+				${ await get_description_html()}
 			</div>
 			${get_rate_discount_html()}`
 
@@ -1316,8 +1316,18 @@ this.highlight_checkout_btn(true);
 
 		}
 
-		function get_description_html() {
-			if (item_data.description) {
+		async function get_description_html() {
+			var posname = me.settings.name
+			const response =await frappe.call({
+				method: 'frappe.client.get_value',
+				args: {
+					doctype: 'POS Profile',
+					filters: { name: posname },
+					fieldname: 'custom_show_item_discription'
+				}
+			});
+			if (item_data.description && response.message.custom_show_item_discription==1) {
+				console.log(`<div class="item-desc">${item_data.description}</div>`)
 				if (item_data.description.indexOf('<div>') != -1) {
 					try {
 						item_data.description = $(item_data.description).text();

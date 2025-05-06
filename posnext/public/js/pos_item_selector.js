@@ -304,9 +304,7 @@ posnext.PointOfSale.ItemSelector = class {
 		const item_selector = `.cart-item-wrapper[data-row-name="${escape(item_code)}"]`;
 		return this.$cart_items_wrapper.find(item_selector);
 	}
-	render_cart_item(item_data) {
-		console.log("Rener cart item")
-		console.log(item_data)
+	async render_cart_item(item_data) {
 		const me = this;
 		const currency = me.events.get_frm().currency || me.currency;
 		this.$cart_items_wrapper.append(
@@ -324,7 +322,6 @@ posnext.PointOfSale.ItemSelector = class {
 			<div class="seperator"></div>`
 		)
 		var $item_to_update = this.get_cart_item1(item_data);
-
 		$item_to_update.html(
 			`${get_item_image_html()}
 			${get_item_name()}
@@ -332,7 +329,7 @@ posnext.PointOfSale.ItemSelector = class {
 				<div style="overflow-wrap: break-word;overflow:hidden;white-space: normal;font-weight: 700;margin-right: 10px">
 					${item_data.item_name}
 				</div>
-				${get_description_html()}
+				${await get_description_html(item_data)}
 			</div>
 			${get_item_code()}
 			${get_rate_discount_html()}`
@@ -433,8 +430,18 @@ posnext.PointOfSale.ItemSelector = class {
 			}
 		}
 
-		function get_description_html() {
-			if (item_data.description) {
+		async function get_description_html(item_data) {
+			var posname = me.pos_profile
+			console.log(me.pos_profile)
+			const response = await frappe.call({
+				method: 'frappe.client.get_value',
+				args: {
+					doctype: 'POS Profile',
+					filters: { name: posname },
+					fieldname: 'custom_show_item_discription'
+				}
+			});
+			if (item_data.description && response.message.custom_show_item_discription==1) {
 				if (item_data.description.indexOf('<div>') != -1) {
 					try {
 						item_data.description = $(item_data.description).text();
@@ -554,15 +561,6 @@ posnext.PointOfSale.ItemSelector = class {
 							frappe.pages['posnext'].refresh(window.wrapper,window.onScan,this.value)
 						}
 
-						// console.log("ON ON CHANGE")
-						// console.log(this.pos_profile_field)
-						// var value = this.pos_profile_field.get_value()
-						// if(value !== me.pos_profile){
-						// 	this.events.check_opening_entry()
-						// }
-						// window.wrapper.please_refresh = true
-						// frappe.pages['posnext'].refresh_data(window.wrapper)
-						// console.log("HEEEERE")
 					}
 				},
 				parent: this.$component.find('.pos-profile'),
@@ -718,7 +716,6 @@ posnext.PointOfSale.ItemSelector = class {
 
 
 		this.$component.on('click', '.item-wrapper', function() {
-			console.log("Item Selected")
 			const $item = $(this);
 			const item_code = unescape($item.attr('data-item-code'));
 			let batch_no = unescape($item.attr('data-batch-no'));
