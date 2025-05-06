@@ -670,7 +670,8 @@ posnext.PointOfSale.Controller = class {
 							item_code: bundle_item.item_code,
 							qty: bundle_item.qty * value,
 							rate: bundle_item.rate,
-							uom: bundle_item.uom
+							uom: bundle_item.uom,
+							custom_bundle_id: product_bundle.name
 						}));
 	
 						for (const bundle_item of bundle_items) {
