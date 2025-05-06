@@ -523,32 +523,51 @@ this.highlight_checkout_btn(true);
 		});
 
 		this.$component.on('click', '.add-branch-wrapper', function () {
-			const $wrapper = $(this); // Store reference to the clicked element
+			const $wrapper = $(this);
+			const posProfileName = me.settings.name;
+			console.log("POS Profile:", posProfileName);
 		
-			// Create a div container for the link field
 			const branchFieldWrapper = $('<div class="branch-field"></div>');
-		
-			// Replace the wrapper with the new div
 			$wrapper.replaceWith(branchFieldWrapper);
 		
-			// Create a Frappe Link Field dynamically
-			let branchField = new frappe.ui.form.ControlLink({
-				df: {
-					fieldtype: 'Link',
-					options: 'Branch',  // Link to Branch Doctype
-					fieldname: 'branch',
-					label: 'Branch',
-					placeholder: 'Select Branch',
+			frappe.call({
+				method: "posnext.doc_events.pos_profile.get_pos_profile_branch",
+				args: {
+					pos_profile_name: posProfileName
 				},
-				parent: branchFieldWrapper, // Append inside the same container
-				value: '',
-				change: function (value) {
-					console.log('Selected Branch:', value);
-				}
-			});
+				callback: function (r) {
+					const branch_name = r.message && r.message.branch;
+
+					console.log(branch_name)
 		
-			// Render the field
-			branchField.refresh();
+					
+					if (!branch_name) {
+						frappe.msgprint(__('Create Branch Accounting Dimensions'));
+						return;
+					}
+		
+					
+					let branchField = new frappe.ui.form.ControlLink({
+						df: {
+							fieldtype: 'Link',
+							options: 'Branch',
+							fieldname: 'branch',
+							label: 'Branch',
+							placeholder: 'Select Branch',
+							default: branch_name,
+							reqd: 1,
+							get_query: () => ({
+								filters: { disabled: 0 }
+							})
+						},
+						parent: branchFieldWrapper
+					});
+		
+					branchField.make();
+					branchField.set_value(branch_name);
+					branchField.refresh();
+				},
+			});
 		});
 		
 		frappe.ui.form.on("Sales Invoice", "paid_amount", frm => {
