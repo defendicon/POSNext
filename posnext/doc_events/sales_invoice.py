@@ -2,6 +2,8 @@ import frappe
 
 
 def validate_si(doc,method):
+    if 'branch' not in doc.__dict__:
+        frappe.throw("Create Branch Accounting Dimensions.")
     if doc.is_return and doc.is_pos:
         doc.update_outstanding_for_self = 0
         if doc.payments:
