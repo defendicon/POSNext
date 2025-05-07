@@ -165,19 +165,6 @@ posnext.PointOfSale.ItemCart = class {
 						${this.get_branch_icon()} <span class="add-branch-text">${__('Add Branch')}</span>
 					</div>
 				`);
-	
-				// Apply styles
-				this.$branch_section.find('.add-branch-wrapper').css({
-					"display": "flex",
-					"align-items": "center",
-					"gap": "8px",
-					"border": "2px dashed #ccc",
-					"padding": "10px",
-					"border-radius": "6px",
-					"cursor": "pointer",
-					"font-weight": "bold"
-				});
-	
 				// Change cursor on hover
 				this.$branch_section.find('.add-branch-wrapper').hover(
 					function () {
@@ -523,51 +510,39 @@ this.highlight_checkout_btn(true);
 			if(!this.discount_field || can_edit_discount) this.show_discount_control();
 		});
 
-		this.$component.on('click', '.add-branch-wrapper', function () {
-			const $wrapper = $(this);
-			const posProfileName = me.settings.name;
 		
-			const branchFieldWrapper = $('<div class="branch-field"></div>');
-			$wrapper.replaceWith(branchFieldWrapper);
-		
-			frappe.call({
-				method: "posnext.doc_events.pos_profile.get_pos_profile_branch",
-				args: {
-					pos_profile_name: posProfileName
-				},
-				callback: function (r) {
-					const branch_name = r.message && r.message.branch;
+		const $wrapper = $('.add-branch-wrapper'); 
+		const posProfileName = me.settings.name;
+		const branchFieldWrapper = $('<div class="branch-field"></div>');
+		$wrapper.replaceWith(branchFieldWrapper); 
 
-					console.log(branch_name)
-		
-					
-					if (!branch_name) {
-						frappe.msgprint(__('Create Branch Accounting Dimensions'));
-						return;
-					}
-		
-					
-					let branchField = new frappe.ui.form.ControlLink({
-						df: {
-							fieldtype: 'Link',
-							options: 'Branch',
-							fieldname: 'branch',
-							label: 'Branch',
-							placeholder: 'Select Branch',
-							default: branch_name,
-							reqd: 1,
-							get_query: () => ({
-								filters: { disabled: 0 }
-							})
-						},
-						parent: branchFieldWrapper
-					});
-		
-					branchField.make();
-					branchField.set_value(branch_name);
-					branchField.refresh();
-				},
-			});
+		frappe.call({
+			method: "posnext.doc_events.pos_profile.get_pos_profile_branch",
+			args: {
+				pos_profile_name: posProfileName
+			},
+			callback: function (r) {
+				const branch_name = r.message && r.message.branch;
+				console.log(branch_name);
+				
+				let branchField = new frappe.ui.form.ControlLink({
+					df: {
+						fieldtype: 'Link',
+						options: 'Branch',
+						fieldname: 'branch',
+						label: 'Branch',
+						placeholder: 'Select Branch',
+						default: branch_name,
+						reqd: 1,
+						
+					},
+					parent: branchFieldWrapper
+				});
+				
+				branchField.make();
+				branchField.set_value(branch_name);
+				branchField.refresh();
+			},
 		});
 		
 		frappe.ui.form.on("Sales Invoice", "paid_amount", frm => {
@@ -1327,7 +1302,6 @@ this.highlight_checkout_btn(true);
 				}
 			});
 			if (item_data.description && response.message.custom_show_item_discription==1) {
-				console.log(`<div class="item-desc">${item_data.description}</div>`)
 				if (item_data.description.indexOf('<div>') != -1) {
 					try {
 						item_data.description = $(item_data.description).text();
