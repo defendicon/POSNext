@@ -30,6 +30,7 @@ posnext.PointOfSale.ItemSelector = class {
 		this.show_only_card_view = settings.custom_show_only_card_view
 		this.custom_edit_rate = settings.custom_edit_rate_and_uom
 		this.custom_show_incoming_rate = settings.custom_show_incoming_rate && settings.custom_edit_rate_and_uom;
+		this.custom_show_item_discription = settings.custom_show_item_discription;
 		// this.custom_edit_uom = settings.custom_edit_uom
 		this.inti_component();
 	}
@@ -304,7 +305,7 @@ posnext.PointOfSale.ItemSelector = class {
 		const item_selector = `.cart-item-wrapper[data-row-name="${escape(item_code)}"]`;
 		return this.$cart_items_wrapper.find(item_selector);
 	}
-	async render_cart_item(item_data) {
+	render_cart_item(item_data) {
 		const me = this;
 		const currency = me.events.get_frm().currency || me.currency;
 		this.$cart_items_wrapper.append(
@@ -329,7 +330,7 @@ posnext.PointOfSale.ItemSelector = class {
 				<div style="overflow-wrap: break-word;overflow:hidden;white-space: normal;font-weight: 700;margin-right: 10px">
 					${item_data.item_name}
 				</div>
-				${await get_description_html(item_data)}
+				${get_description_html(item_data)}
 			</div>
 			${get_item_code()}
 			${get_rate_discount_html()}`
@@ -430,18 +431,9 @@ posnext.PointOfSale.ItemSelector = class {
 			}
 		}
 
-		async function get_description_html(item_data) {
-			var posname = me.pos_profile
-			console.log(me.pos_profile)
-			const response = await frappe.call({
-				method: 'frappe.client.get_value',
-				args: {
-					doctype: 'POS Profile',
-					filters: { name: posname },
-					fieldname: 'custom_show_item_discription'
-				}
-			});
-			if (item_data.description && response.message.custom_show_item_discription==1) {
+		function get_description_html(item_data) {
+			
+			if (me.custom_show_item_discription) {
 				if (item_data.description.indexOf('<div>') != -1) {
 					try {
 						item_data.description = $(item_data.description).text();

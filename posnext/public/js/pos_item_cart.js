@@ -22,7 +22,7 @@ posnext.PointOfSale.ItemCart = class {
 		this.custom_show_uom_in_cart = settings.custom_show_uom_in_cart && settings.custom_edit_rate_and_uom;
 		this.show_branch = settings.show_branch;
 		this.show_batch_in_cart = settings.show_batch_in_cart
-		this.show_item_description = settings.custom_show_item_discription;
+		this.custom_show_item_discription = settings.custom_show_item_discription;
 		// this.custom_edit_uom = settings.custom_edit_uom;
 		this.settings = settings;
 		this.warehouse = settings.warehouse;
@@ -946,7 +946,7 @@ this.highlight_checkout_btn(true);
 		this.update_empty_cart_section(no_of_cart_items);
 	}
 
-	async render_cart_item(item_data, $item_to_update) {
+	render_cart_item(item_data, $item_to_update) {
 		const currency = this.events.get_frm().doc.currency;
 		const me = this;
 
@@ -975,7 +975,7 @@ this.highlight_checkout_btn(true);
 		item_html += `<div class="item-name" style="flex: 4; white-space: normal; word-wrap: break-word; overflow: visible; line-height: 1.2;">
 					${item_data.item_name}
 				</div>
-				${ await get_description_html()}
+				${ get_description_html(item_data) }
 			</div>
 			${get_rate_discount_html()}`
 
@@ -1291,22 +1291,17 @@ this.highlight_checkout_btn(true);
 
 		}
 
-		async function get_description_html() {
-			var posname = me.settings.name
-			const response =await frappe.call({
-				method: 'frappe.client.get_value',
-				args: {
-					doctype: 'POS Profile',
-					filters: { name: posname },
-					fieldname: 'custom_show_item_discription'
-				}
-			});
-			if (item_data.description && response.message.custom_show_item_discription==1) {
+		function get_description_html(item_data) {
+			const hide_description = me.custom_show_item_discription;
+			if (hide_description) {
 				if (item_data.description.indexOf('<div>') != -1) {
 					try {
 						item_data.description = $(item_data.description).text();
 					} catch (error) {
-						item_data.description = item_data.description.replace(/<div>/g, ' ').replace(/<\/div>/g, ' ').replace(/ +/g, ' ');
+						item_data.description = item_data.description
+							.replace(/<div>/g, ' ')
+							.replace(/<\/div>/g, ' ')
+							.replace(/ +/g, ' ');
 					}
 				}
 				item_data.description = frappe.ellipsis(item_data.description, 45);
