@@ -108,14 +108,12 @@ posnext.PointOfSale.ItemCart = class {
 		html += `<div class="rate-amount-header" style="flex: 1;text-align: left">${__('Amount')}</div>
 					</div>
 					<div class="cart-items-section" ></div>
-					<div class="cart-branch-section"></div>
 					<div class="cart-totals-section"></div>
 					<div class="numpad-section"></div>
 				</div>
 			</div>`
 		this.$component.append(html);
 		this.$cart_container = this.$component.find('.cart-container');
-		this.make_branch_section();
 		this.make_cart_totals_section();
 		this.make_cart_items_section();
 		this.make_cart_numpad();
@@ -154,86 +152,77 @@ posnext.PointOfSale.ItemCart = class {
 		`;
 	}
 	
-	make_branch_section() {
-		if (this.show_branch) {
-			this.$branch_section = this.$component.find('.cart-branch-section');
-	
-			if (this.$branch_section.length) {
-				this.$branch_section.append(`
-					<br>
-					<div class="add-branch-wrapper">
-						${this.get_branch_icon()} <span class="add-branch-text">${__('Add Branch')}</span>
-					</div>
-				`);
-				// Change cursor on hover
-				this.$branch_section.find('.add-branch-wrapper').hover(
-					function () {
-						$(this).css("background-color", "#f9f9f9");
-					},
-					function () {
-						$(this).css("background-color", "transparent");
-					}
-				);
-			}
-		}
-	}
-	
-	
 	make_cart_totals_section() {
 		this.$totals_section = this.$component.find('.cart-totals-section');
-		
+	  
+		let branchHTML = '';
+		if (this.show_branch) {
+		  branchHTML = `
+			<div class="branch-container" style="width: 30%;">
+			  <div class="add-branch-wrapper action-box">
+				${this.get_branch_icon()} <span>${__('Add Branch')}</span>
+			  </div>
+			</div>`;
+		}
+	  
 		this.$totals_section.append(
-			`<div class="add-discount-wrapper">
-				${this.get_discount_icon()} ${__('Add Discount')}
+		  `<div class="discount-branch-row" style="display: flex; justify-content: space-between; margin-bottom: 20px; ">
+			<div class="discount-container" style="width: ${this.show_branch ? '65%' : '100%'};margin-top: 36px;">
+			  <div class="add-discount-wrapper action-box">
+				${this.get_discount_icon()} <span>${__('Add Discount')}</span>
+			  </div>
 			</div>
-			<div class="item-qty-total-container">
-				<div class="item-qty-total-label">${__('Total Items')}</div>
-				<div class="item-qty-total-value">0.00</div>
-			</div>
-			<div class="net-total-container">
-				<div class="net-total-label">${__("Net Total")}</div>
-				<div class="net-total-value">0.00</div>
-			</div>
-			<div class="taxes-container"></div>
-			<div class="grand-total-container">
-				<div>${__('Grand Total')}</div>
-				<div>0.00</div>
-			</div>
-			<div style=" display: flex;justify-content: space-between;gap: 10px;">
-				<div class="checkout-btn" style="
-							padding: 10px;
-							align-items: center;
-							justify-content: center;
-							color: white;
-							border: none;
-							border-radius: 5px;
-							cursor: pointer;
-							flex: 1; ">${__('Checkout (F1)')}</div>
-				<div class="checkout-btn-held checkout-btn" style="
-							padding: 10px;
-							align-items: center;
-							justify-content: center;
-							color: white;
-							border: none;
-							border-radius: 5px;
-							cursor: pointer;
-							flex: 1;">${__('Held (F2)')}</div>
-				<div class="checkout-btn-order checkout-btn" style="
-				padding: 10px;
-							align-items: center;
-							justify-content: center;
-							color: white;
-							border: none;
-							border-radius: 5px;
-							cursor: pointer;
-							flex: 1;">${__('Order List (F3)')}</div>
-			</div>	
-			<div class="edit-cart-btn">${__('Edit Cart')}</div>`
-		)
-
-		this.$add_discount_elem = this.$component.find(".add-discount-wrapper");
-this.highlight_checkout_btn(true);
-	}
+			${branchHTML}
+		  </div>
+	  
+		  <div class="item-qty-total-container">
+			<div class="item-qty-total-label">${__('Total Items')}</div>
+			<div class="item-qty-total-value">0.00</div>
+		  </div>
+		  <div class="net-total-container">
+			<div class="net-total-label">${__("Net Total")}</div>
+			<div class="net-total-value">0.00</div>
+		  </div>
+		  <div class="taxes-container"></div>
+		  <div class="grand-total-container">
+			<div>${__('Grand Total')}</div>
+			<div>0.00</div>
+		  </div>
+		  <div style="display: flex; justify-content: space-between; gap: 10px;">
+			<div class="checkout-btn" style="padding: 10px; align-items: center; justify-content: center; color: white; border: none; border-radius: 5px; cursor: pointer; flex: 1;">${__('Checkout (F1)')}</div>
+			<div class="checkout-btn-held checkout-btn" style="padding: 10px; align-items: center; justify-content: center; color: white; border: none; border-radius: 5px; cursor: pointer; flex: 1;">${__('Held (F2)')}</div>
+			<div class="checkout-btn-order checkout-btn" style="padding: 10px; align-items: center; justify-content: center; color: white; border: none; border-radius: 5px; cursor: pointer; flex: 1;">${__('Order List (F3)')}</div>
+		  </div>
+		  <div class="edit-cart-btn">${__('Edit Cart')}</div>`
+		);
+	  
+		this.$component.find('.action-box').css({
+		  width: '100%',
+		  padding: '10px',
+		  border: '1px dashed #ccc',
+		  borderRadius: '6px',
+		  minHeight: '48px',
+		  height: '30px',
+		  display: 'flex',
+		  alignItems: 'center',
+		  justifyContent: 'center',
+		  gap: '6px',
+		  fontSize: '14px',
+		  boxSizing: 'border-box'
+		});
+	  
+		this.$component.find('.action-box').hover(
+		  function () {
+			$(this).css("background-color", "#f9f9f9");
+		  },
+		  function () {
+			$(this).css("background-color", "transparent");
+		  }
+		);
+	  
+		this.$add_discount_elem = this.$component.find('.add-discount-wrapper');
+		this.highlight_checkout_btn(true);
+	  }
 
 	make_cart_numpad() {
 		this.$numpad_section = this.$component.find('.numpad-section');
