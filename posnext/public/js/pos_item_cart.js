@@ -23,7 +23,7 @@ posnext.PointOfSale.ItemCart = class {
 		this.show_branch = settings.show_branch;
 		this.show_batch_in_cart = settings.show_batch_in_cart
 		this.custom_show_item_discription = settings.custom_show_item_discription;
-		// this.custom_edit_uom = settings.custom_edit_uom;
+		this.custom_show_item_barcode = settings.custom_show_item_barcode;
 		this.settings = settings;
 		this.warehouse = settings.warehouse;
 		this.init_component();
@@ -946,7 +946,7 @@ this.highlight_checkout_btn(true);
 		this.update_empty_cart_section(no_of_cart_items);
 	}
 
-	render_cart_item(item_data, $item_to_update) {
+	async render_cart_item(item_data, $item_to_update) {
 		const currency = this.events.get_frm().doc.currency;
 		const me = this;
 
@@ -971,11 +971,13 @@ this.highlight_checkout_btn(true);
 		if(!me.custom_use_discount_amount && !me.custom_use_discount_percentage){
 			item_html += `<div class="item-name-desc" style="flex: 3.5">`
 		}
+		const barcode_html = await get_item_barcode(item_data);
 
 		item_html += `<div class="item-name" style="flex: 4; white-space: normal; word-wrap: break-word; overflow: visible; line-height: 1.2;">
 					${item_data.item_name}
 				</div>
 				${ get_description_html(item_data) }
+				${barcode_html}
 			</div>
 			${get_rate_discount_html()}`
 
@@ -1309,6 +1311,36 @@ this.highlight_checkout_btn(true);
 			}
 			return ``;
 		}
+
+		async function get_item_barcode(item_data) {
+			const hide_barcode = me.custom_show_item_barcode;
+		
+			if (!hide_barcode) return '';
+		
+			try {
+				const response = await frappe.call({
+					method: "posnext.posnext.page.posnext.point_of_sale.get_barcodes",
+					args: {
+						item_code: item_data.item_code
+					}
+				});
+		
+				if (response.message && response.message.length > 0) {
+					return response.message.map(b => `
+						<div class="item-barcode" style="font-size: 12px; color: #888;">
+							${b.barcode}
+						</div>
+					`).join('');
+				}
+			} catch (e) {
+				console.error("Failed to fetch barcodes", e);
+			}
+		
+			return '';
+		}
+		
+		
+
 
 		function get_item_image_html() {
 			const { image, item_name } = item_data;
