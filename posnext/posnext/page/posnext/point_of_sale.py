@@ -483,3 +483,7 @@ def get_uoms(item_code):
 		return d
 	else:
 		return []
+	
+@frappe.whitelist()
+def get_barcodes(item_code):
+	return frappe.db.get_all("Item Barcode", filters={"parent": item_code}, fields=["barcode"])
