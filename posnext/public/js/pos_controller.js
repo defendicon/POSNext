@@ -698,9 +698,9 @@ posnext.PointOfSale.Controller = class {
 				item_row = this.frm.add_child('items', new_item);
 	
 				await this.trigger_new_item_events(item_row);
-				item_row['rate'] = rate
-				item_row['valuation_rate'] = valuation_rate;
-				item_row['custom_valuation_rate'] = valuation_rate;
+				// item_row['rate'] = rate
+				// item_row['valuation_rate'] = valuation_rate;
+				// item_row['custom_valuation_rate'] = valuation_rate;
 				item_row['custom_item_uoms'] = custom_item_uoms;
 				item_row['custom_logical_rack'] = custom_logical_rack;
 				// this.update_cart_html(item_row);
