@@ -20,7 +20,10 @@ posnext.PointOfSale.ItemCart = class {
 		this.custom_show_last_customer_rate = settings.custom_show_last_customer_rate;
 		this.custom_show_logical_rack_in_cart = settings.custom_show_logical_rack_in_cart && settings.custom_edit_rate_and_uom;
 		this.custom_show_uom_in_cart = settings.custom_show_uom_in_cart && settings.custom_edit_rate_and_uom;
-		// this.custom_edit_uom = settings.custom_edit_uom;
+		this.show_branch = settings.show_branch;
+		this.show_batch_in_cart = settings.show_batch_in_cart
+		this.custom_show_item_discription = settings.custom_show_item_discription;
+		this.custom_show_item_barcode = settings.custom_show_item_barcode;
 		this.settings = settings;
 		this.warehouse = settings.warehouse;
 		this.init_component();
@@ -79,6 +82,9 @@ posnext.PointOfSale.ItemCart = class {
 			if(this.custom_show_uom_in_cart){
 				html += `<div class="uom-header" style="flex: 1">${__('UOM')}</div>`
 			}
+			if(this.show_batch_in_cart){
+				html += `<div class="batch-header" style="flex: 1">${__('Batch')}</div>`
+			}
 			if(this.custom_edit_rate){
 				html += `<div class="rate-header" style="flex: 1">${__('Rate')}</div>`
 			}
@@ -102,13 +108,14 @@ posnext.PointOfSale.ItemCart = class {
 		html += `<div class="rate-amount-header" style="flex: 1;text-align: left">${__('Amount')}</div>
 					</div>
 					<div class="cart-items-section" ></div>
+					<div class="cart-branch-section"></div>
 					<div class="cart-totals-section"></div>
 					<div class="numpad-section"></div>
 				</div>
 			</div>`
 		this.$component.append(html);
 		this.$cart_container = this.$component.find('.cart-container');
-
+		this.make_branch_section();
 		this.make_cart_totals_section();
 		this.make_cart_items_section();
 		this.make_cart_numpad();
@@ -139,9 +146,42 @@ posnext.PointOfSale.ItemCart = class {
 		);
 	}
 
+	get_branch_icon() {
+		return `
+			<svg class="branch-icon" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<path d="M5 3V9M5 3C6.65685 3 8 4.34315 8 6C8 7.65685 6.65685 9 5 9M5 3C3.34315 3 2 4.34315 2 6C2 7.65685 3.34315 9 5 9M19 15V21M19 15C20.6569 15 22 16.3431 22 18C22 19.6569 20.6569 21 19 21M19 15C17.3431 15 16 16.3431 16 18C16 19.6569 17.3431 21 19 21M5 9C5 13.4183 8.58172 17 13 17H16" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+			</svg>
+		`;
+	}
+	
+	make_branch_section() {
+		if (this.show_branch) {
+			this.$branch_section = this.$component.find('.cart-branch-section');
+	
+			if (this.$branch_section.length) {
+				this.$branch_section.append(`
+					<br>
+					<div class="add-branch-wrapper">
+						${this.get_branch_icon()} <span class="add-branch-text">${__('Add Branch')}</span>
+					</div>
+				`);
+				// Change cursor on hover
+				this.$branch_section.find('.add-branch-wrapper').hover(
+					function () {
+						$(this).css("background-color", "#f9f9f9");
+					},
+					function () {
+						$(this).css("background-color", "transparent");
+					}
+				);
+			}
+		}
+	}
+	
+	
 	make_cart_totals_section() {
 		this.$totals_section = this.$component.find('.cart-totals-section');
-
+		
 		this.$totals_section.append(
 			`<div class="add-discount-wrapper">
 				${this.get_discount_icon()} ${__('Add Discount')}
@@ -168,7 +208,7 @@ posnext.PointOfSale.ItemCart = class {
 							border: none;
 							border-radius: 5px;
 							cursor: pointer;
-							flex: 1; ">${__('Checkout')}</div>
+							flex: 1; ">${__('Checkout (F1)')}</div>
 				<div class="checkout-btn-held checkout-btn" style="
 							padding: 10px;
 							align-items: center;
@@ -177,7 +217,7 @@ posnext.PointOfSale.ItemCart = class {
 							border: none;
 							border-radius: 5px;
 							cursor: pointer;
-							flex: 1;">${__('Held')}</div>
+							flex: 1;">${__('Held (F2)')}</div>
 				<div class="checkout-btn-order checkout-btn" style="
 				padding: 10px;
 							align-items: center;
@@ -186,7 +226,7 @@ posnext.PointOfSale.ItemCart = class {
 							border: none;
 							border-radius: 5px;
 							cursor: pointer;
-							flex: 1;">${__('Order List')}</div>
+							flex: 1;">${__('Order List (F3)')}</div>
 			</div>	
 			<div class="edit-cart-btn">${__('Edit Cart')}</div>`
 		)
@@ -399,7 +439,18 @@ this.highlight_checkout_btn(true);
 
 		this.$component.on('click', '.checkout-btn-held', function() {
 			if ($(this).attr('style').indexOf('--blue-500') == -1) return;
-			if(!cur_frm.doc.customer && me.mobile_number_based_customer){
+		
+			// Check for empty cart
+			if (!cur_frm.doc.items || cur_frm.doc.items.length === 0) {
+				frappe.show_alert({
+					message: __('Please add items to cart before holding.'),
+					indicator: 'red'
+				});
+				frappe.utils.play_sound("error");
+				return;
+			}
+		
+			if(!cur_frm.doc.customer && me.mobile_number_based_customer) {
 				let d = new frappe.ui.Dialog({
 					title: 'Enter Mobile Number',
 					fields: [
@@ -420,94 +471,29 @@ this.highlight_checkout_btn(true);
 					primary_action_label: 'Continue',
 					primary_action: function(values) {
 						if(values['mobile_number'].length !== me.settings.custom_mobile_number_length){
-							frappe.throw("Mobile Number Length is " + me.settings.custom_mobile_number_length.toString())
+							frappe.throw("Mobile Number Length is " + me.settings.custom_mobile_number_length.toString());
 						}
-						frappe.call({
-							method: "posnext.posnext.page.posnext.point_of_sale.create_customer",
-							args: {
-								customer: values['mobile_number']
-							},
-							freeze: true,
-							freeze_message: "Creating Customer....",
-							callback: async function(){
-								const frm = me.events.get_frm();
-								frappe.dom.freeze();
-								frappe.model.set_value(frm.doc.doctype, frm.doc.name, 'customer', values['mobile_number']);
-								frm.script_manager.trigger('customer', frm.doc.doctype, frm.doc.name).then(() => {
-									frappe.run_serially([
-										() => me.fetch_customer_details(values['mobile_number']),
-										() => me.events.customer_details_updated(me.customer_info),
-										() => me.update_customer_section(),
-										() => frappe.dom.unfreeze()
-									]);
-								})
-								me.events.save_draft_invoice()
-
-								d.hide();
-							}
-						})
+						if (me.settings.custom_add_reference_details) {
+							me.show_reference_dialog(values['mobile_number']);
+						} else {
+							me.hold_invoice(values['mobile_number']);
+						}
+						d.hide();
 					}
 				});
-				var mobile_number_numpad_div = d.wrapper.find(".mobile_number_numpad")
-				mobile_number_numpad_div.append(`
-					<div class="custom-numpad">
-						<style>
-						.custom-numpad {
-							display: grid;
-							grid-template-columns: repeat(3, 1fr);
-							gap: 10px;
-							max-width: 350px;
-							margin: 0 auto;
-						}
-						
-						.numpad-button {
-							padding: 15px;
-							font-size: 18px;
-							cursor: pointer;
-							background-color: #f1f1f1;
-							border: 1px solid #ccc;
-							border-radius: 5px;
-							text-align: center;
-						}
-						
-						.numpad-button:hover {
-							background-color: #ddd;
-						}
-						</style>
-						<button class="numpad-button one">1</button>
-						<button class="numpad-button two">2</button>
-						<button class="numpad-button three">3</button>
-						<button class="numpad-button four">4</button>
-						<button class="numpad-button five">5</button>
-						<button class="numpad-button six">6</button>
-						<button class="numpad-button seven">7</button>
-						<button class="numpad-button eight">8</button>
-						<button class="numpad-button nine">9</button>
-						<button class="numpad-button delete" style="color: red">x</button>
-						<button class="numpad-button zero">0</button>
-						<button class="numpad-button clear">C</button> <!-- Clear button -->
-					</div>`)
-
+		
+				me.setup_mobile_numpad(d);
 				d.show();
-				var numpad_num = d.wrapper.find(".custom-numpad")
-				var numbers = ["one",'two','three','four','five','six','seven','eight','nine','zero',"plus"]
-				for(var xx=0;xx<numbers.length;xx+=1){
-					numpad_num.on('click', '.' + numbers[xx], function() {
-						var current_value = d.get_value("mobile_number")
-						d.set_value('mobile_number', current_value + $(this)[0].innerHTML.toString());
-					})
-				}
-				numpad_num.on('click', '.clear', function() {
-						d.set_value('mobile_number', "");
-					})
-					numpad_num.on('click', '.delete', function() {
-					var current_value = d.get_value("mobile_number")
-						d.set_value('mobile_number', current_value.slice(0, -1));
-					})
 			} else {
-				me.events.save_draft_invoice();
+				if (me.settings.custom_add_reference_details) {
+					me.show_reference_dialog();
+				} else {
+					me.hold_invoice();
+				}
 			}
 		});
+		
+
 		this.$component.on('click', '.checkout-btn-order', () => {
 			this.events.toggle_recent_order();
 		});
@@ -524,6 +510,41 @@ this.highlight_checkout_btn(true);
 			if(!this.discount_field || can_edit_discount) this.show_discount_control();
 		});
 
+		
+		const $wrapper = $('.add-branch-wrapper'); 
+		const posProfileName = me.settings.name;
+		const branchFieldWrapper = $('<div class="branch-field"></div>');
+		$wrapper.replaceWith(branchFieldWrapper); 
+
+		frappe.call({
+			method: "posnext.doc_events.pos_profile.get_pos_profile_branch",
+			args: {
+				pos_profile_name: posProfileName
+			},
+			callback: function (r) {
+				const branch_name = r.message && r.message.branch;
+				console.log(branch_name);
+				
+				let branchField = new frappe.ui.form.ControlLink({
+					df: {
+						fieldtype: 'Link',
+						options: 'Branch',
+						fieldname: 'branch',
+						label: 'Branch',
+						placeholder: 'Select Branch',
+						default: branch_name,
+						reqd: 1,
+						
+					},
+					parent: branchFieldWrapper
+				});
+				
+				branchField.make();
+				branchField.set_value(branch_name);
+				branchField.refresh();
+			},
+		});
+		
 		frappe.ui.form.on("Sales Invoice", "paid_amount", frm => {
 			// called when discount is applied
 			this.update_totals_section(frm);
@@ -583,6 +604,8 @@ this.highlight_checkout_btn(true);
 			ignore_inputs: true,
 			page: cur_page.page.page
 		});
+
+
 		frappe.ui.keys.on("escape", () => {
 			const item_cart_visible = this.$component.is(":visible");
 			if (item_cart_visible && this.discount_field && this.discount_field.parent.is(":visible")) {
@@ -924,7 +947,6 @@ this.highlight_checkout_btn(true);
 	}
 
 	render_cart_item(item_data, $item_to_update) {
-
 		const currency = this.events.get_frm().doc.currency;
 		const me = this;
 
@@ -950,10 +972,11 @@ this.highlight_checkout_btn(true);
 			item_html += `<div class="item-name-desc" style="flex: 3.5">`
 		}
 
-		item_html += `<div class="item-name">
+		item_html += `<div class="item-name" style="flex: 4; white-space: normal; word-wrap: break-word; overflow: visible; line-height: 1.2;">
 					${item_data.item_name}
 				</div>
-				${get_description_html()}
+				${ get_description_html(item_data) }
+				${get_item_barcode(item_data)}
 			</div>
 			${get_rate_discount_html()}`
 
@@ -989,6 +1012,27 @@ this.highlight_checkout_btn(true);
 					parent: $item_to_update.find(`.item-uom`),
 					render_input: true,
 				});
+			}
+			if(me.show_batch_in_cart){
+				this[item_data.item_code + "_batch"] = frappe.ui.form.make_control({
+					df: {
+						fieldname: "batch",
+						fieldtype: "Link",
+						options: "Batch",
+						get_query: function() {
+							return {
+								filters: {
+									item: item_data.item_code
+								}
+							};
+						},
+						onchange: function() {
+							me.events.form_updated(item_data, "batch_no", this.value);
+						},
+					},
+					parent: $item_to_update.find(`.item-batch`),
+					render_input: true,
+				});				
 			}
             this[item_data.item_code + "_rate"] = frappe.ui.form.make_control({
                     df: {
@@ -1099,7 +1143,9 @@ this.highlight_checkout_btn(true);
 				this[item_data.item_code + "_uom"].set_value(item_data.uom);
 				this[item_data.item_code + "_uom"].refresh();
 			}
-			
+			if(me.show_batch_in_cart){
+				this[item_data.item_code + "_batch"].set_value(item_data.batch_no);
+			}
             // this[item_data.item_code + "_amount"].set_value(parseFloat(item_data.amount).toFixed(3));
             // this[item_data.item_code + "_rate"].set_value(parseFloat(item_data.rate).toFixed(3));
 			this[item_data.item_code + "_amount"].set_value(item_data.amount);
@@ -1165,6 +1211,9 @@ this.highlight_checkout_btn(true);
 					if(me.custom_show_uom_in_cart){
 						html += `<div class="item-uom" style="flex: 1;text-align: left"></div>`;
 					}
+					if(me.show_batch_in_cart){
+						html += `<div class="item-batch" style="flex: 1;text-align: left"></div>`;
+					}
 					html += `<div class="item-rate" style="flex: 1;"></div>`;
 					if(me.custom_use_discount_percentage){
 						html += `<div class="item-rate-discount" style="flex: 1;text-align: left"></div>`
@@ -1191,6 +1240,9 @@ this.highlight_checkout_btn(true);
                         <div class="item-qty" style="flex: 1"></div>`;
 					if(me.custom_show_uom_in_cart){
 						html += `<div class="item-uom" style="flex: 1;text-align: left"></div>`;
+					}
+					if(me.show_batch_in_cart){
+						html += `<div class="item-batch" style="flex: 1;text-align: left"></div>`;
 					}
 					html += `<div class="item-rate" style="flex: 1;"></div>`;
 					if(me.custom_use_discount_percentage){
@@ -1219,6 +1271,7 @@ this.highlight_checkout_btn(true);
                         <div class="item-qty-rate" style="flex: 4" > 
                             <div class="item-qty" style="flex: 1"><span>${item_data.qty || 0}</span></div>
                             <div class="item-qty" style="flex: 1"><span> ${item_data.uom}</span></div>
+							<div class="item-qty" style="flex: 1"><span> ${item_data.batch}</span></div>
                             <div class="item-rate-amount" style="flex: 1">
                                 <div class="item-rate">${parseFloat(item_data.amount).toFixed(2)}</div>
                                 <div class="item-amount">${parseFloat(item_data.rate).toFixed(2)}</div>
@@ -1229,6 +1282,7 @@ this.highlight_checkout_btn(true);
                         <div class="item-qty-rate" style="flex: 4" >
                             <div class="item-qty" style="flex: 1" ><span>${item_data.qty || 0}</span></div>
                             <div class="item-qty" style="flex: 1"><span> ${item_data.uom}</span></div>
+							<div class="item-qty" style="flex: 1"><span> ${item_data.batch}</span></div>
                             <div class="item-rate-amount" style="flex: 1">
                                 <div class="item-rate">${parseFloat(item_data.rate).toFixed(2)}</div>
                             </div>
@@ -1238,19 +1292,56 @@ this.highlight_checkout_btn(true);
 
 		}
 
-		function get_description_html() {
-			if (item_data.description) {
+		function get_description_html(item_data) {
+			const hide_description = me.custom_show_item_discription;
+			if (hide_description) {
 				if (item_data.description.indexOf('<div>') != -1) {
 					try {
 						item_data.description = $(item_data.description).text();
 					} catch (error) {
-						item_data.description = item_data.description.replace(/<div>/g, ' ').replace(/<\/div>/g, ' ').replace(/ +/g, ' ');
+						item_data.description = item_data.description
+							.replace(/<div>/g, ' ')
+							.replace(/<\/div>/g, ' ')
+							.replace(/ +/g, ' ');
 					}
 				}
 				item_data.description = frappe.ellipsis(item_data.description, 45);
 				return `<div class="item-desc">${item_data.description}</div>`;
 			}
 			return ``;
+		}
+
+		// FIXED FUNCTION: Properly handle barcode display without requiring a callback
+		function get_item_barcode(item_data) {
+			const show_barcode = me.custom_show_item_barcode;
+		
+			if (!show_barcode) {
+				return '';
+			}
+			
+			// Create a unique placeholder ID for this item's barcodes
+			const barcode_placeholder_id = `barcode-${item_data.item_code.replace(/[^a-zA-Z0-9]/g, '-')}`;
+			
+			// Fetch barcodes asynchronously and update the placeholder
+			frappe.call({
+				method: "posnext.posnext.page.posnext.point_of_sale.get_barcodes",
+				args: {
+					item_code: item_data.item_code
+				},
+				callback: function(response) {
+					if (response.message && response.message.length > 0) {
+						const html = response.message.map(b => `
+							<div class="item-barcode" style="font-size: 12px; color: #888;">
+								${b.barcode}
+							</div>
+						`).join('');
+						$(`#${barcode_placeholder_id}`).html(html);
+					}
+				}
+			});
+			
+			// Return a placeholder div that will be filled when the data is available
+			return `<div id="${barcode_placeholder_id}" class="item-barcodes"></div>`;
 		}
 
 		function get_item_image_html() {
@@ -1717,4 +1808,117 @@ this.highlight_checkout_btn(true);
 		show ? this.$component.css('display', 'flex') : this.$component.css('display', 'none');
 	}
 
+	show_reference_dialog(mobile_number = null) {
+		const me = this;
+		const dialog = new frappe.ui.Dialog({
+			title: __('Enter Reference Details'),
+			fields: [
+				{
+					fieldtype: 'Data',
+					label: __('Reference Number'),
+					fieldname: 'reference_no',
+					reqd: 1
+				},
+				{
+					fieldtype: 'Data',
+					label: __('Reference Name'),
+					fieldname: 'reference_name',
+					reqd: 1
+				}
+			],
+			primary_action_label: __('Hold Invoice'),
+			primary_action: async (values) => {
+				if (mobile_number) {
+					// Create customer if mobile number provided
+					await frappe.call({
+						method: "posnext.posnext.page.posnext.point_of_sale.create_customer",
+						args: { customer: mobile_number },
+						freeze: true,
+						freeze_message: "Creating Customer...."
+					});
+					
+					const frm = me.events.get_frm();
+					await frappe.model.set_value(frm.doc.doctype, frm.doc.name, 'customer', mobile_number);
+					await frm.script_manager.trigger('customer', frm.doc.doctype, frm.doc.name);
+				}
+
+				// Update reference details
+				const frm = me.events.get_frm();
+				frm.doc.custom_reference_no = values.reference_no;
+				frm.doc.custom_reference_name = values.reference_name;
+				
+				dialog.hide();
+				await me.events.save_draft_invoice();
+			}
+		});
+		dialog.show();
+	}
+
+	async hold_invoice(mobile_number = null) {
+		if (mobile_number) {
+			await frappe.call({
+				method: "posnext.posnext.page.posnext.point_of_sale.create_customer",
+				args: { customer: mobile_number },
+				freeze: true,
+				freeze_message: "Creating Customer...."
+			});
+			
+			const frm = this.events.get_frm();
+			await frappe.model.set_value(frm.doc.doctype, frm.doc.name, 'customer', mobile_number);
+			await frm.script_manager.trigger('customer', frm.doc.doctype, frm.doc.name);
+		}
+		
+		await this.events.save_draft_invoice();
+	}
 }
+
+document.addEventListener('keydown', function (event) {
+    const activeElement = document.activeElement;
+    const isInputActive = activeElement.tagName === 'INPUT' || 
+                          activeElement.tagName === 'TEXTAREA' || 
+                          activeElement.isContentEditable;
+
+    if (event.key === 'F1' && !isInputActive) {
+        event.preventDefault(); // Prevent browser help window
+        const checkoutButton = document.querySelector('.checkout-btn');
+        if (checkoutButton) {
+            checkoutButton.click();
+        } else {
+            console.warn("Checkout button not found!");
+        }
+    }
+
+    // New shortcut for the held checkout button
+    if (event.key === 'F2' && !isInputActive) {
+        event.preventDefault(); // Prevent default action
+        const heldCheckoutButton = document.querySelector('.checkout-btn-held');
+        if (heldCheckoutButton) {
+            heldCheckoutButton.click();
+        } else {
+            console.warn("Held Checkout button not found!");
+        }
+    }
+
+	// ... existing code ...
+    // New shortcut for the checkout button order
+    if (event.key === 'F3' && !isInputActive) {
+        event.preventDefault(); // Prevent default action
+        const orderCheckoutButton = document.querySelector('.checkout-btn-order');
+        if (orderCheckoutButton) {
+            orderCheckoutButton.click();
+        } else {
+            console.warn("Order Checkout button not found!");
+        }
+    }
+// ... existing code ...
+    // New shortcut for the search field button
+    if (event.key === 'F4' && !isInputActive) {
+        event.preventDefault(); // Prevent default action
+        const searchFieldButton = document.querySelector('.search-field button'); // Adjust selector as needed
+        if (searchFieldButton) {
+            searchFieldButton.click();
+        } else {
+            console.warn("Search field button not found!");
+        }
+    }
+});

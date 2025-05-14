@@ -11,6 +11,7 @@ posnext.PointOfSale.ItemSelector = class {
 		this.hide_images = settings.hide_images;
 		this.reload_status = reload_status
 		this.auto_add_item = settings.auto_add_item_to_cart;
+		this.auto_search_serial = settings.custom_auto_search_serial_number;
 		if(settings.custom_default_view){
 			view = settings.custom_default_view
 		}
@@ -29,6 +30,7 @@ posnext.PointOfSale.ItemSelector = class {
 		this.show_only_card_view = settings.custom_show_only_card_view
 		this.custom_edit_rate = settings.custom_edit_rate_and_uom
 		this.custom_show_incoming_rate = settings.custom_show_incoming_rate && settings.custom_edit_rate_and_uom;
+		this.custom_show_item_discription = settings.custom_show_item_discription;
 		// this.custom_edit_uom = settings.custom_edit_uom
 		this.inti_component();
 	}
@@ -45,8 +47,10 @@ posnext.PointOfSale.ItemSelector = class {
 	prepare_dom() {
 		var cardlist = ``
 		if(!this.show_only_list_view && !this.show_only_card_view){
-			cardlist = `<div class="list-view"><a class="list-span">List</a></div>
-			<div class="card-view"><a class="card-span">Card</a></div>`
+			cardlist = `
+			<div class="list-view" style="grid-column: span 1 / span 2!important;"><a class="list-span">List</a></div>
+			<div class="card-view" style="grid-column: span 1 / span 2!important;"><a class="card-span">Card</a></div>
+			`
 		}
 
 		if(view === "Card" && !this.show_only_list_view){
@@ -55,20 +59,17 @@ posnext.PointOfSale.ItemSelector = class {
 				tir = `<div class="total-incoming-rate" style="margin-left: 10px;grid-column: span 2 / span 2"></div>`
 			}
 			this.wrapper.append(
-				`<div class="items-container">
-					<section class="items-selector" id="card-view-section">
-						<div class="filter-section">` + cardlist + `
-							
-							<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
-							<div class="search-field" style="grid-column: span 4 / span 4"></div>
-							<!--<div class="item-code-search-field" style="grid-column: span 2 / span 2"></div>-->
-							<div class="item-group-field" style="grid-column: span 2 / span 2"></div>
-							<div class="invoice-posting-date" style="grid-column: span 2 / span 2"></div>
-							` + tir + `
-						</div>
-						<div class="items-container"></div>
-					</section>
-				</div>`
+				`<section class="items-selector" id="card-view-section" style="grid-column: span 5/span 5!important;">
+					<div class="filter-section">` + cardlist + `<div class="pos-profile" style="grid-column: span 2 / span 2"></div>
+						<div class="search-field" style="grid-column: span 4 / span 4"></div>
+						<!--<div class="item-code-search-field" style="grid-column: span 2 / span 2"></div>-->
+						<div class="item-group-field" style="grid-column: span 2 / span 2"></div>
+						<div class="invoice-posting-date" style="margin-left: 10px;grid-column: span 2 / span 2"></div>` + tir + `
+						
+					</div>
+					<div class="items-container"></div>
+				</section>
+				`
 			);
 
 			this.$component = this.wrapper.find('.items-selector');
@@ -107,9 +108,9 @@ posnext.PointOfSale.ItemSelector = class {
                     "display": "inline-block",
                     "background-color": "#3498db",
                     "color": "white",
-                    "padding": "5px 10px",
+                    "padding": "3px 3px",
                     "border-radius": "20px",
-                    "font-size": "14px",
+                    "font-size": "12px",
                     "font-weight": "bold",
                     "text-transform": "uppercase",
                     "letter-spacing": "1px",
@@ -120,7 +121,7 @@ posnext.PointOfSale.ItemSelector = class {
                     "display": "",
                     "background-color": "",
                     "color": "",
-                    "padding": "",
+                    "padding": "3px 3px",
                     "border-radius": "",
                     "font-size": "",
                     "font-weight": "",
@@ -134,9 +135,9 @@ posnext.PointOfSale.ItemSelector = class {
                     "display": "inline-block",
                     "background-color": "#3498db",
                     "color": "white",
-                    "padding": "5px 10px",
+                    "padding": "3px 3px",
                     "border-radius": "20px",
-                    "font-size": "14px",
+                    "font-size": "12px",
                     "font-weight": "bold",
                     "text-transform": "uppercase",
                     "letter-spacing": "1px",
@@ -147,7 +148,7 @@ posnext.PointOfSale.ItemSelector = class {
                     "display": "",
                     "background-color": "",
                     "color": "",
-                    "padding": "",
+                    "padding": "3px 3px",
                     "border-radius": "",
                     "font-size": "",
                     "font-weight": "",
@@ -305,8 +306,6 @@ posnext.PointOfSale.ItemSelector = class {
 		return this.$cart_items_wrapper.find(item_selector);
 	}
 	render_cart_item(item_data) {
-		console.log("Rener cart item")
-		console.log(item_data)
 		const me = this;
 		const currency = me.events.get_frm().currency || me.currency;
 		this.$cart_items_wrapper.append(
@@ -324,7 +323,6 @@ posnext.PointOfSale.ItemSelector = class {
 			<div class="seperator"></div>`
 		)
 		var $item_to_update = this.get_cart_item1(item_data);
-
 		$item_to_update.html(
 			`${get_item_image_html()}
 			${get_item_name()}
@@ -332,7 +330,7 @@ posnext.PointOfSale.ItemSelector = class {
 				<div style="overflow-wrap: break-word;overflow:hidden;white-space: normal;font-weight: 700;margin-right: 10px">
 					${item_data.item_name}
 				</div>
-				${get_description_html()}
+				${get_description_html(item_data)}
 			</div>
 			${get_item_code()}
 			${get_rate_discount_html()}`
@@ -417,6 +415,7 @@ posnext.PointOfSale.ItemSelector = class {
 							<div class="item-rate" style="text-align: left">${format_currency(item_data.price_list_rate, currency)}</div>
 						</div>
 						<div class="item-qty" style="flex: 1;display:block;text-align: center"><span> ${item_data.actual_qty || 0}</span></div>
+					
 						
 					</div>`
 			} else {
@@ -427,12 +426,14 @@ posnext.PointOfSale.ItemSelector = class {
 						</div>
 						<div class="item-qty" style="flex: 1;display:block;text-align: center"><span> ${item_data.actual_qty || 0}</span></div>
 						
+						
 					</div>`
 			}
 		}
 
-		function get_description_html() {
-			if (item_data.description) {
+		function get_description_html(item_data) {
+			
+			if (me.custom_show_item_discription) {
 				if (item_data.description.indexOf('<div>') != -1) {
 					try {
 						item_data.description = $(item_data.description).text();
@@ -552,15 +553,6 @@ posnext.PointOfSale.ItemSelector = class {
 							frappe.pages['posnext'].refresh(window.wrapper,window.onScan,this.value)
 						}
 
-						// console.log("ON ON CHANGE")
-						// console.log(this.pos_profile_field)
-						// var value = this.pos_profile_field.get_value()
-						// if(value !== me.pos_profile){
-						// 	this.events.check_opening_entry()
-						// }
-						// window.wrapper.please_refresh = true
-						// frappe.pages['posnext'].refresh_data(window.wrapper)
-						// console.log("HEEEERE")
 					}
 				},
 				parent: this.$component.find('.pos-profile'),
@@ -716,7 +708,6 @@ posnext.PointOfSale.ItemSelector = class {
 
 
 		this.$component.on('click', '.item-wrapper', function() {
-			console.log("Item Selected")
 			const $item = $(this);
 			const item_code = unescape($item.attr('data-item-code'));
 			let batch_no = unescape($item.attr('data-batch-no'));
@@ -811,21 +802,24 @@ posnext.PointOfSale.ItemSelector = class {
 				const items = this.search_index[search_term];
 				this.items = items;
 				this.render_item_list(items);
-				this.auto_add_item && this.items.length == 1;
+				if (this.auto_search_serial && this.items.length === 1) {
+					this.add_filtered_item_to_cart();
+				}
 				return;
 			}
 		}
 
 		this.get_items({ search_term })
 			.then(({ message }) => {
-				// eslint-disable-next-line no-unused-vars
 				const { items, serial_no, batch_no, barcode } = message;
 				if (search_term && !barcode) {
 					this.search_index[search_term] = items;
 				}
 				this.items = items;
 				this.render_item_list(items);
-				this.auto_add_item && this.items.length == 1;
+				if (this.auto_search_serial && this.items.length === 1) {
+					this.add_filtered_item_to_cart();
+				}
 			});
 	}
 

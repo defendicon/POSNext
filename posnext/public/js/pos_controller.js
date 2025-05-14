@@ -12,9 +12,25 @@ posnext.PointOfSale.Controller = class {
 			() => this.reload_status = true,
 		]);
 
-
+		this.setup_form_events();
 
 	}
+	setup_form_events() {
+		frappe.ui.form.on('Sales Invoice', {
+			after_save: function(frm) {
+				if (!frm.doc.pos_profile) return;
+	
+				frappe.db.get_doc('POS Profile', frm.doc.pos_profile)
+					.then(pos_profile => {
+						if (pos_profile.custom_stock_update) {
+							frm.set_value('update_stock', 0);
+							// frm.save();
+						}
+					});
+			}
+		});
+	}
+	
 
 	// Function to add the ledger balance box
     add_ledger_balance_box() {
@@ -676,25 +692,25 @@ posnext.PointOfSale.Controller = class {
 			let { field, value, item } = args;
 			item_row = this.get_item_from_frm(item);
 			const item_row_exists = !$.isEmptyObject(item_row);
-
+	
 			const from_selector = field === 'qty' && value === "+1";
 			if (from_selector)
 				value = flt(item_row.stock_qty) + flt(value);
-
+	
 			if (item_row_exists) {
 				if (field === 'qty')
 					value = flt(value);
-
+	
 				if (['qty', 'conversion_factor'].includes(field) && value > 0 && !this.allow_negative_stock) {
 					const qty_needed = field === 'qty' ? value * item_row.conversion_factor : item_row.qty * value;
 					// await this.check_stock_availability(item_row, qty_needed, this.frm.doc.set_warehouse);
 				}
-
+	
 				if (this.is_current_item_being_edited(item_row) || from_selector) {
 					await frappe.model.set_value(item_row.doctype, item_row.name, field, value)
 					// this.update_cart_html(item_row);
 				}
-
+	
 			} else {
 				if (!this.frm.doc.customer && !this.settings.custom_mobile_number_based_customer){
 					return this.raise_customer_selection_alert();
@@ -703,7 +719,28 @@ posnext.PointOfSale.Controller = class {
 				const { item_code, batch_no, serial_no, rate, uom, valuation_rate, custom_item_uoms, custom_logical_rack } = item;
 				if (!item_code)
 					return;
-
+	
+				if (this.settings.custom_product_bundle) {
+					const product_bundle = await this.get_product_bundle(item_code);
+					if (product_bundle && Array.isArray(product_bundle.items)) {
+						const bundle_items = product_bundle.items.map(bundle_item => ({
+							item_code: bundle_item.item_code,
+							qty: bundle_item.qty * value,
+							rate: bundle_item.rate,
+							uom: bundle_item.uom,
+							custom_bundle_id: product_bundle.name
+						}));
+	
+						for (const bundle_item of bundle_items) {
+							const bundle_item_row = this.frm.add_child('items', bundle_item);
+							await this.trigger_new_item_events(bundle_item_row);
+						}
+	
+						this.update_cart_html();
+						return;
+					}
+				}
+	
 				const new_item = { item_code, batch_no, rate, uom, [field]: value };
 				if(value){
 					new_item['qty'] = value
@@ -712,41 +749,36 @@ posnext.PointOfSale.Controller = class {
 					await this.check_serial_no_availablilty(item_code, this.frm.doc.set_warehouse, serial_no);
 					new_item['serial_no'] = serial_no;
 				}
-
+	
 				if (field === 'serial_no')
 					new_item['qty'] = value.split(`\n`).length || 0;
 				item_row = this.frm.add_child('items', new_item);
-
-				// if (field === 'qty' && value !== 0 && !this.allow_negative_stock) {
-					// const qty_needed = value * item_row.conversion_factor;
-					// await this.check_stock_availability(item_row, qty_needed, this.frm.doc.set_warehouse);
-				// }
-
+	
 				await this.trigger_new_item_events(item_row);
-				item_row['rate'] = rate
-				item_row['valuation_rate'] = valuation_rate;
-				item_row['custom_valuation_rate'] = valuation_rate;
+				// item_row['rate'] = rate
+				// item_row['valuation_rate'] = valuation_rate;
+				// item_row['custom_valuation_rate'] = valuation_rate;
 				item_row['custom_item_uoms'] = custom_item_uoms;
 				item_row['custom_logical_rack'] = custom_logical_rack;
 				// this.update_cart_html(item_row);
 				if (this.item_details.$component.is(':visible'))
 					this.edit_item_details_of(item_row);
-
+	
 				if (this.check_serial_batch_selection_needed(item_row) && !this.item_details.$component.is(':visible'))
 					this.edit_item_details_of(item_row);
 			}
-		
+	
 		} catch (error) {
 			console.log(error);
 		} finally {
 			// frappe.dom.unfreeze();
-
+	
 			var total_incoming_rate = 0
 			this.frm.doc.items.forEach(item => {
 				total_incoming_rate += (parseFloat(item.valuation_rate) * item.qty)
 			});
 			this.item_selector.update_total_incoming_rate(total_incoming_rate)
-
+	
 			return item_row; // eslint-disable-line no-unsafe-finally
 		}
 	}
@@ -759,28 +791,46 @@ posnext.PointOfSale.Controller = class {
 		});
 		frappe.utils.play_sound("error");
 	}
+	async get_product_bundle(item_code) {
+		const response = await frappe.call({
+			method: "posnext.doc_events.item.get_product_bundle_with_items",
+			args: {
+				item_code: item_code
+			}
+			});
+		return response.message;
+	}
 
 	get_item_from_frm({ name, item_code, batch_no, uom, rate }) {
 		let item_row = null;
-
+	
 		if (name) {
 			item_row = this.frm.doc.items.find(i => i.name == name);
 		} else {
 			// if item is clicked twice from item selector
 			// then "item_code, batch_no, uom, rate" will help in getting the exact item
 			// to increase the qty by one
-			const has_batch_no = (batch_no !== 'null' && batch_no !== null);
-			const batch_no_check = this.settings.custom_allow_add_new_items_on_new_line ? (has_batch_no && cur_frm.doc.items[i].batch_no === batch_no) : true
-			for(var i=0;i<cur_frm.doc.items.length;i+=1){
-				if(cur_frm.doc.items[i].item_code === item_code && cur_frm.doc.items[i].uom === uom && parseFloat(cur_frm.doc.items[i].rate) === parseFloat(rate)){
-					item_row = cur_frm.doc.items[i]
-					break
+			for (var i = 0; i < cur_frm.doc.items.length; i += 1) {
+				const has_batch_no = (batch_no !== 'null' && batch_no !== null);
+				const batch_no_check = this.settings.custom_allow_add_new_items_on_new_line
+					? (has_batch_no && cur_frm.doc.items[i].batch_no === batch_no)
+					: true;
+	
+				if (
+					cur_frm.doc.items[i].item_code === item_code &&
+					cur_frm.doc.items[i].uom === uom &&
+					parseFloat(cur_frm.doc.items[i].rate) === parseFloat(rate) &&
+					batch_no_check
+				) {
+					item_row = cur_frm.doc.items[i];
+					break;
 				}
 			}
-			console.log(item_row)
+			console.log(item_row);
 		}
 		return item_row || {};
 	}
+	
 
 	edit_item_details_of(item_row) {
 		this.item_details.toggle_item_details_section(item_row);
@@ -921,6 +971,76 @@ posnext.PointOfSale.Controller = class {
 			save_error && setTimeout(() => {
 				this.cart.toggle_checkout_btn(true);
 			}, 300); // wait for save to finish
+		} else {
+			this.payment.checkout();
+		}
+	}
+	async save_and_checkout() {
+		if (!this.frm.doc.items || this.frm.doc.items.length === 0) {
+			frappe.show_alert({
+				message: __('Please add items to cart before checkout.'),
+				indicator: 'red'
+			});
+			frappe.utils.play_sound("error");
+			return;
+		}
+		if (this.frm.is_dirty()) {
+			if(this.settings.custom_add_reference_details){
+			const dialog = new frappe.ui.Dialog({
+				title: __('Enter Reference Details'),
+				fields: [
+					{
+						fieldtype: 'Data',
+						label: __('Reference Number'),
+						fieldname: 'reference_no',
+					},
+					{
+						fieldtype: 'Data',
+						label: __('Reference Name'),
+						fieldname: 'reference_name',
+					}
+				],
+				primary_action_label: __('Proceed to Payment'),
+				primary_action: async (values) => {
+					this.frm.doc.custom_reference_no = values.reference_no;
+					this.frm.doc.custom_reference_name = values.reference_name;
+
+					const div = document.getElementById("customer-cart-container2");
+					div.style.gridColumn = "";
+					
+					let save_error = false;
+					await this.frm.save(null, null, null, () => save_error = true);
+					
+					dialog.hide();
+					
+					if (!save_error) {
+						this.payment.checkout();
+					} else {
+						setTimeout(() => {
+							this.cart.toggle_checkout_btn(true);
+						}, 300); // wait for save to finish
+					}
+				}
+			});
+
+			
+			dialog.show();
+			}else{
+
+			const div = document.getElementById("customer-cart-container2");
+			div.style.gridColumn = "";
+			let save_error = false;
+			await this.frm.save(null, null, null, () => save_error = true);
+			// only move to payment section if save is successful
+			!save_error && this.payment.checkout();
+			// show checkout button on error
+			save_error && setTimeout(() => {
+				this.cart.toggle_checkout_btn(true);
+			}, 300); // wait for save to finish
+			}
+
+
+
 		} else {
 			this.payment.checkout();
 		}

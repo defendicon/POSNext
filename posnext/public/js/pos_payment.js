@@ -10,9 +10,13 @@ posnext.PointOfSale.Payment = class {
 		this.custom_show_credit_sales = settings.custom_show_credit_sales
 		this.default_payment = settings.default_payment
 		this.current_payments = []
+		this.enable_coupon_code = settings.enable_coupon_code
 
 		this.init_component();
 		// this.init_component();
+		if (this.enable_coupon_code){
+			this.render_coupon_code_field();
+		}
 	}
 
 	init_component() {
@@ -25,12 +29,13 @@ posnext.PointOfSale.Payment = class {
 
 	prepare_dom() {
 		this.wrapper.append(
-			`<section class="payment-container">
+			`<section class="payment-container" style="grid-column: span 5 / span 5;">
 				<div class="section-label payment-section">${__('Payment Method')}</div>
 				<div class="payment-modes"></div>
 				<div class="fields-numpad-container">
 					<div class="fields-section">
 						<div class="section-label">${__('Additional Information')}</div>
+						<div class="coupon-code"></div> <!-- ✅ Correct class here -->
 						<div class="invoice-fields"></div>
 					</div>
 					<div class="number-pad"></div>
@@ -41,13 +46,31 @@ posnext.PointOfSale.Payment = class {
 				<div class="submit-order-btn">${__("Complete Order")}</div>
 			</section>`
 		);
+	
+		// ✅ Assign to the right class
 		this.$component = this.wrapper.find('.payment-container');
 		this.$payment_modes = this.$component.find('.payment-modes');
 		this.$totals_section = this.$component.find('.totals-section');
 		this.$totals = this.$component.find('.totals');
 		this.$numpad = this.$component.find('.number-pad');
+		this.$coupon_code = this.$component.find('.coupon-code');
 		this.$invoice_fields_section = this.$component.find('.fields-section');
 	}
+	
+	render_coupon_code_field() {
+		frappe.ui.form.make_control({
+			df: {
+				label: __('Coupon Code'),
+				fieldtype: 'Link',
+				options: 'Coupon Code',
+				fieldname: 'coupon_code',
+				placeholder: __('Select a coupon'),
+			},
+			parent: this.$component.find('.coupon-code'),
+			render_input: true
+		});
+	}
+	
 
 	make_invoice_fields_control() {
 		// frappe.db.get_doc("POS Settings", undefined).then((doc) => {
@@ -625,6 +648,9 @@ posnext.PointOfSale.Payment = class {
 
 	update_totals_section(doc) {
 		if (!doc) doc = this.events.get_frm().doc;
+		let branch_value = $('.input-with-feedback[data-fieldname="branch"]').val();
+		frappe.model.set_value(cur_frm.doctype, cur_frm.docname, 'branch', branch_value);
+		// cur_frm.save()
 		// doc.paid_amount = doc.grand_total
 			const paid_amount = doc.paid_amount;
 

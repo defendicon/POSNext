@@ -39,9 +39,10 @@ app_include_js = [
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-doctype_js = {"POS Profile" : "public/js/pos_profile.js"}
+doctype_js = {"POS Profile" : "public/js/pos_profile.js",
+"Sales Invoice" : "public/js/sales_invoice.js"}
 
-# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+doctype_list_js = {"Item" : "public/js/item_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
@@ -139,7 +140,12 @@ doc_events = {
 		"validate": "posnext.doc_events.item.validate_item"
 	},
 	"Sales Invoice": {
-		"validate": "posnext.doc_events.sales_invoice.validate_si"
+		"validate": [
+			"posnext.doc_events.sales_invoice.validate_si",
+		],
+		"on_submit": [
+			"posnext.doc_events.sales_invoice.create_delivery_note",
+		]
 	},
 	"POS Profile": {
 		"validate": "posnext.doc_events.pos_profile.validate_pf"
