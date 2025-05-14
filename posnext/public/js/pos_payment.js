@@ -29,7 +29,7 @@ posnext.PointOfSale.Payment = class {
 
 	prepare_dom() {
 		this.wrapper.append(
-			`<section class="payment-container">
+			`<section class="payment-container" style="grid-column: span 5 / span 5;">
 				<div class="section-label payment-section">${__('Payment Method')}</div>
 				<div class="payment-modes"></div>
 				<div class="fields-numpad-container">
